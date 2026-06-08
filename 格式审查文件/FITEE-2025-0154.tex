@@ -1,0 +1,1017 @@
+% First release on June 21, 2010
+% Modified on Dec 12, 2017 by XSK
+% Modified on Dec., 2025 (MYZ)
+
+\documentclass[twoside,twocolumn]{article}
+
+\usepackage{fitee}
+\usepackage{graphicx}
+\usepackage{stfloats}
+\usepackage{cuted}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+\renewcommand{\figurename}{Fig.}
+
+% 不使用 caption 包，手动定义一个 strip 中可用的图题命令
+\makeatletter
+\newcommand{\stripfigcaption}[1]{%
+  \def\@captype{figure}%
+  \caption{#1}%
+}
+\makeatother
+
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\setlength{\abovedisplayskip}{2pt}
+\setlength{\belowdisplayskip}{2pt}
+
+%% article title
+\title{Microservice framework for data-model fusion in situational awareness simulations}
+
+%% when all authors provide emails, no $\dagger$
+\author[1,2\Letter]{Runnan QIN}%
+\author[1]{Zhen YANG}
+\author[1]{Xiaodong PENG}
+\author[1,2]{Wenming XIE}
+\author[1,2]{Xiao ZHENG}
+\author[1]{Jingyi REN}
+\author[1]{Zeyu FAN}
+\affil[1]{Key Laboratory of Electronics and Information Technology for Space Systems, National Space Science Center, Chinese Academy of Sciences, Beijing 100191, China}
+\affil[2]{University of Chinese Academy of Sciences, Beijing 101408, China}
+
+\authmark{}
+
+\corremailA{Runnan QIN, qinrunnan@nssc.ac.cn}
+
+% abbrev. of month: Jan. Feb. Mar. Apr. May June July Aug. Sept. Oct. Nov. Dec.
+\dateinfo{Received: Apr.\ 11, 2021;	Revision accepted: Sept.\ 17, 2021;   \newline Crosschecked: Jan.\ 12, 2022}
+
+\abstract{In response to the increasing demand for heterogeneous data interaction and cross-disciplinary modeling in aerospace situational awareness simulations, we propose the microservice platform for data-model computing (MP-DMC), which is a high-performance microservice framework built on a container cloud. The proposed MP-DMC framework unifies the control of data and models through a distributed node resource management and scheduling strategy, integrating an election-optimized leader--follower mechanism, a predictive model based on a double moving average-long short-term memory network for dynamic elastic scaling, and an intelligent load migration algorithm to address management inefficiencies, prevent node crashes, and mitigate resource oscillation under high-concurrency conditions, respectively. Experimental results demonstrate that the proposed MP-DMC framework outperforms mainstream algorithms in terms of election performance, node scaling efficiency, task response time, and load balancing, including consensus algorithms (Paxos, Raft, and PBFT), elastic scaling solutions (HPA, DMA-HPA, ProSmart HPA, and RL), and scheduling algorithms (round-robin, pure random, and weighted random), achieving exceptional resource allocation performance and system availability.}
+
+% separate by semicolons
+\keywords{Data-model fusion; High-performance simulation computing; Scheduling strategy; Node load prediction; Microservice}
+
+\doi{10.1631/ENG.ITEE.2025.XXXX}	% DOI of the paper, should be accurate
+\clc{TP393.08}
+
+% \shortauthor 未在 fitee.sty 中定义，页眉由 \markboth 自动生成
+
+\publishyear{2026}
+\vol{27}
+\issue{1}
+\articlenumber{25XXXX}
+\pagestart{1}
+\pageend{4}
+
+\orcid{Runnan QIN, https://orcid.org/0009-0007-7668-2385
+}	
+
+\articleType{Research Article}
+%\articleType can be `Science Letters:', `Review:', `Comment:', etc.
+
+\maketitle
+
+%\thispagestyle{empty}
+
+\section{Introduction} \label{sec:introduction}
+Aerospace technologies involve large-scale systems, complex processes, and multidisciplinary integration, leading to prohibitively high experimental costs. In this context, simulation technology has become an indispensable solution, offering precise modeling of space entity deployment, operational dynamics, and trends. It provides critical visual analytics for aerospace system design, mission planning, performance validation, and operational optimization, thereby establishing itself as a corner-stone of modern aerospace engineering. The technology's advantages are multifaceted: significant cost reduction, experimental repeatability, enhanced operational reliability, and the ability to overcome spatial--temporal limitations \citep{Ding2025}.
+
+In the aerospace field, situational awareness simulation further intensifies these demands, requiring systematic modeling of space entities, heterogeneous experimental scenarios, and intricate environmental variables. This necessitates advanced data-model fusion capabilities to address various challenges, including multisource heterogeneous data integration and multidisciplinary coupled modeling, which impose stringent requirements on simulation accuracy and real-time responsiveness. However, achieving this fusion presents critical technical hurdles.
+
+1.~Management instability. Frequent leader elections in distributed nodes cause management inefficiencies and service interruptions.
+
+2.~Burst load handling. The inability to accurately predict and proactively scale resources for large-scale, bursty computing tasks leads to node crashes and performance degradation.
+
+3.~Resource oscillation. Under high concurrency, reactive load migration can trigger unstable resource allocation and load oscillations, thereby compromising system stability.
+
+Compounding these challenges, the rapid expansion of spacecraft and ground station deployments has triggered an exponential growth in spacecraft telemetry and space situational awareness data volumes. Concurrently, the computational complexity of situational awareness simulations has increased dramatically, driven by demands for higher-fidelity modeling.
+
+To address these computational imperatives, critical research priorities emerge, focusing on enabling real-time processing of multisource situational data and supporting large-scale concurrent model calculation. Current approaches leverage high-throughput data transmission systems, including topic-based architectures, e.g., Kafka \citep{Wei2025}, RabbitMQ \citep{Pathak2021}, RocketMQ \citep{MaY2017}, and ActiveMQ \citep{Yin2015}, alongside content/channel/type-driven publish-subscribe paradigms \citep{Ding2020,Yang2004,Dayal2014}. Parallel developments in distributed scheduling systems, exemplified by ElasticJob \citep{LiuF2015}, XXL-JOB \citep{Xu2015}, and the Spring Cloud Scheduler \citep{Pivotal2018}, have evolved from monolithic to microservice architectures to satisfy escalating computational demands \citep{Feng2020,Dragoni2017}. However, integrating these discrete solutions for coupled data-model fusion simulations reveals critical limitations, i.e., incompatible resource management strategies across systems lead to node underutilization and architectural redundancy.
+
+To address these challenges, we propose the microservice platform for data-model computing (MP-DMC), a framework that synergizes distributed cloud management with adaptive scheduling strategies. MP-DMC's architecture features the following.
+
+1.~Secure high-throughput data synchronization channels;
+
+2.~Ensures leader--follower stability with dynamic election;
+
+3.~Container elastic scaling by predicting node load;
+
+4.~Load-aware migration mechanism to realize optimal resource scheduling.
+
+Validated through large-scale space operation simulations, the proposed MP-DMC framework demonstrates superior performance in high-throughput data interaction, high-concurrency task processing, and stable service operation while avoiding load balancing oscillations. The primary contributions of this study are summarized as follows.
+
+1.~Lightweight microservice architecture. A container-native framework is proposed for unified data-model fusion computing.
+
+2.~Distributed scheduling strategy. An election-optimized, load-predictive algorithm addressing:
+
+\hspace{2em}(1)~a proposed a leader--follower election algorithm that reduces election frequency by narrowing the candidate node set, addressing management inefficiencies caused by frequent elections among cloud nodes;
+
+\hspace{2em}(2)~a proposed dynamic elastic expansion algorithm based on the DMA-LSTM model, which enables dynamic threshold adjustment through node load demand prediction, resolving node crash issues triggered by large scale, burst computing tasks;
+
+\hspace{2em}(3)~a proposed load migration scheduling algorithm leveraging a load migration model to mitigate unbalanced resource allocation and load oscillation under high-concurrency scenarios.
+
+The remainder of this paper is organized as follows. Section II discusses related work, including data transmission and model scheduling systems. Section III details the architecture of the proposed MP-DMC framework, and Section IV presents its core algorithms. Section V evaluates experimental results, and Section VI concludes the paper, including a summary of future research directions.
+
+\section{Related work}
+
+\subsection{Secure and coherent transmission of large-scale data}
+
+The evolution of distributed cloud computing has revolutionized large-scale data processing by enabling efficient resource sharing across server clusters \citep{Wang2023}. Early frameworks, e.g., Hadoop, demonstrated the potential of distributed systems through components, including the Hadoop Distributed File System and MapReduce; however, their dependence on offline batch processing limits applicability in real-time scenarios that require low-latency data streaming.
+
+Publish-subscribe systems have addressed this gap by supporting asynchronous communication with high scalability and multithreaded concurrency \citep{Zhang2021,Tsenos2021}. Recent advancements have increasingly focused on the integration of cloud computing platforms and publish-subscribe systems. For example, Ullah and Park (2013) proposed a publish-subscribe middleware integrated with Hadoop that employs content-based matching algorithms to analyze subscription intent and deliver more accurate content to subscribers. However, synchronization challenges persist due to performance disparities among cloud nodes, thereby leading to data misalignment and loss.
+
+To address these issues, modern approaches integrate lightweight consensus protocols with adaptive architectures. For example, hierarchical federated learning architectures, e.g., HierFedML, demonstrate how edge-cloud collaboration can enhance data coherence while reducing communication overhead, achieving 15\% faster response times in mobile edge computing environments \citep{Xu2023}. Despite progress, Byzantine fault tolerance remains a critical challenge in consensus protocols. In addition, although PBFT \citep{Lamport1998} improves robustness over Paxos and Raft \citep{Li2025a,Zheng2025}, its limitations in terms of scalability hinder deployment in ultralarge clusters.
+
+\subsection{High-concurrency task scheduling for model computations}
+
+The shift from monolithic architectures to microservice architectures has transformed task scheduling paradigms, with frameworks like Spring Cloud \citep{Larsson2021}, Dubbo \citep{Liang2017}, and Tars \citep{Mesbahi2019} enabling rapid service decoupling. However, dynamic resource allocation under high concurrency remains a bottleneck \citep{Cui2021}. ElasticJob and XXL-JOB attempt to address this through task sharding and lightweight scheduling; however, their static resource allocation models may suffer from inefficiencies in fluctuating workloads. In addition, the centralized Azkaban architecture, which is suitable for small-scale cluster scheduling, enables rapid configuration of task flows. The distributed Apache DolphinScheduler architecture \citep{Guo2019} further simplifies the configuration process within its framework. However, these systems may experience server lag or even single points of failure when handling excessive numbers of tasks.
+
+Recent studies have proposed innovative solutions. For example, Liu et al. developed a space-efficient fair cache scheme for NVMe SSDs that combines machine learning with adaptive load prediction to improve I/O throughput in high-concurrency scenarios \citep{Liu2023}. However, due to limited computing power, AI-driven scheduling is not widely used in industrial contexts. The focus remains on research associated with load balancing algorithms.
+
+Static load balancing algorithms, e.g., ratio-based \citep{Luo2022}, frequently fail to account for heterogeneous task complexities. In contrast, dynamic load balancing algorithms, e.g., weighted round-robin algorithms, can improve data interaction efficiency and optimize server resource allocation \citep{Shona2023,Shrimal2024}. However, two primary challenges remain.
+
+1.~Resource allocation for task nodes is frequently rigid or overly simplistic, with excessive node backups leading to significant resource wastage.
+
+2.~An influx of tasks to lightly loaded nodes may trigger additional load balancing cycles, thereby causing periodic oscillations that degrade server performance.
+
+\subsection{Computational analysis of data-model fusion}
+
+Data-model fusion technology serves as a bridge between heterogeneous data streams and computational models, facilitating real-time analytics. In simulation-based applications, the effectiveness of data-model fusion has been well established. For example, integrating key monitoring data from coal mining machines enables real-time rendering \citep{MaHC2023}. Similarly, the fusion of data-driven and simulation-based methods has been applied to fault diagnosis in plunger pumps \citep{Zhang2023}, and a real-time hybrid simulation platform that combines digital models with physical control and protection devices has been developed \citep{Lei2024}.
+
+However, the increasing demand for situational awareness simulation necessitates the integration of high-throughput data transmission and model scheduling, an area where existing solutions remain inadequate. In this context, two primary challenges dominate.
+
+1.~Leader--follower stability. Frequent elections in dynamic clusters degrade availability.
+
+2.~Elastic scaling. Rigid scaling threshold settings cause container crashes under sudden loads.
+
+In summary, to the best of our knowledge, very limited efforts have been made to ensure dynamic cloud node management and optimal resource scheduling for microservice-based applications in situational awareness simulation. This study attempts to fill that gap.
+
+% 跨栏图片Fig.1
+\begin{strip}
+\setlength{\abovecaptionskip}{0pt}
+\centering
+\includegraphics[width=0.98\textwidth]{pics/Fig1.eps}
+\stripfigcaption{Overall architecture of proposed MP-DMC framework. The framework adopts a four-layer distributed architecture, where similar functional structures are expressed using the same color scheme.}
+\label{fig:Fig1}
+\end{strip}
+
+\section{Design of microservice architecture for data-model fusion computing}
+
+\subsection{Overall architecture design}
+
+The proposed MP-DMC framework adopts a four-layer distributed architecture comprising the Node Management Center, Model Calculation Scheduling, Data Security Transmission, and Data Storage Management Layers, as shown in Fig.~\ref{fig:Fig1}.
+
+The Node Management Center Layer governs all cloud nodes through a leader--follower control mechanism. Here, the leader node serves as the scheduling hub, with a dynamic election algorithm that ensures seamless failover by electing a new leader node upon its failure. For follower nodes experiencing faults or insufficient computational resources, a dynamic elastic expansion algorithm triggers resource expansion. The Model Calculation Scheduling and Data Security Transmission Layers employ an adaptive load migration scheduling algorithm to adjust node resources dynamically based on real-time workloads. This algorithm ensures ordered data publishing/subscribing for internode synchronization. The Data Storage Management Layer completes data buffering, backup, and secure archival storage, achieving high memory throughput and strong I/O performance.
+
+\subsection{Node management control design}
+
+The Node Management Center Layer implements leader--follower control and dynamic elastic expansion, enabling rapid recovery from process interruptions or system crashes. In the event of a leader node failure, follower nodes initiate an election process to select a new leader node.
+
+% 单栏图片Fig.2
+\begin{figure}[ht!]
+\setlength{\abovecaptionskip}{0pt}
+\centering
+\includegraphics[width=\columnwidth]{pics/Fig2.eps}
+\caption{Node election process design diagram}
+\label{fig:Fig2}
+\end{figure}
+
+As shown in Fig.~\ref{fig:Fig2}, the election process is facilitated by two primary components, i.e., the elector and the communicator. The elector is responsible for the receipt and submission of votes, and the communicator handles communication between nodes during the voting process. Each node may cast its vote for either itself or another node, with the vote being transmitted across the network to the designated node's vote queue, where it is ultimately placed in the vote box. If any follower node receives greater than 50\% of the total votes, it assumes the role of the leader node.
+
+When follower nodes experiencing faults or insufficient computational resources could trigger resource expansion, the required node resources are transmitted to the global resource control module via a heartbeat mechanism. Simultaneously, a dedicated monitor tracks cluster status through heartbeat subscriptions, initiating vertical scaling when thresholds are breached. Finally, the elastic scaling module stores new node configurations in an expansion queue, which are subsequently deployed as follower nodes by container orchestration tools.
+
+\subsection{Model calculation scheduling design}
+
+The Model Calculation Scheduling Layer utilizes the leader node of the scheduling center as the control hub, rapidly analyzing the users' computational demands and triggering the executor center to allocate tasks. This system schedules tasks dynamically based on the computational resources available on the follower nodes, supporting a fully asynchronous design and distributed deployment.
+
+For time axis-driven, high-concurrency tasks, the system employs a time wheel storage structure to manage tasks, enabling timer and delayed scheduling functionalities while generating task configuration tables. Here, the leader node of the scheduling center polls the task configurations in the time wheel and distributes tasks accordingly. Executors register with the scheduling center via heartbeat signals, establishing remote communication and standing by for task assignments. Incoming task requests are buffered in a reception queue, which are then decomposed according to the current computational resources of each node. Then, the routing strategy triggers the appropriate executor to perform high-concurrency task scheduling. In addition, the system adjusts tasks on overloaded executors dynamically based on real-time load conditions and facilitates the reclamation of expired tasks from offline executors. This mechanism ensures efficient task allocation and execution. The specific scheduling process is illustrated in Fig.~\ref{fig:Fig3}.
+
+% 单栏图片Fig.3
+\begin{figure}[H]
+\centering
+\setlength{\abovecaptionskip}{0pt}
+\includegraphics[width=\columnwidth]{pics/Fig3.eps}
+\caption{Computation scheduling process flow diagram}
+\label{fig:Fig3}
+\end{figure}
+
+\subsection{Data security transmission design}
+
+The Data Security Transmission Layer adopts a publish/subscribe architecture that comprises publisher nodes, subscriber nodes, and a data mapping area (Fig.~\ref{fig:Fig4}).
+
+The publisher node operates through the coordination of two threads, i.e., the main and sending threads. In the main thread, user-generated data are passed through an interceptor, serializer, and partitioner before being buffered at the end of the data accumulator queue. This process enables the sending thread to batch the transmission of data, thereby reducing network resource consumption and enhancing performance. The partitioner employs a pyramid-style hierarchical management approach and uses a layered index to partition data and facilitate topic-based subscriptions. The sending thread retrieves messages from the front of the data accumulator's double-ended queue and transmits them to the data mapping area via a responder.
+
+The subscriber node can join a subscription group and subscribe to data topics in the data mapping area based on a watermark that indicates which data are available to be pulled by the subscriber node. After pulling the data, it saves the subscription offset. The subscription offset represents the position of the next data item to be retrieved. Thus, the data between the watermark and the subscription offset constitute the available content for retrieval.
+
+% 单栏图片Fig.4
+\begin{figure}[H]
+\centering
+\setlength{\abovecaptionskip}{0pt}
+\includegraphics[width=\columnwidth]{pics/Fig4.eps}
+\caption{Data publish/subscribe process flow diagram}
+\label{fig:Fig4}
+\end{figure}
+	
+\section{Distributed data-model fusion management and scheduling strategy}
+
+\subsection{Leader--follower election algorithm}
+
+In distributed node scheduling scenarios, the proposed MP-DMC framework adopts a leader--follower architecture for cluster management. Here, the leader node assumes critical computational and communication responsibilities; however, it becomes prone to resource saturation under high-concurrency workloads, potentially triggering node failures. To ensure continuity, an election algorithm dynamically selects replacement leader nodes from follower candidates. However, frequent topology changes induced by new node integrations may degrade system availability through repeated elections. To mitigate this, we propose a leader--follower election algorithm (Algorithm~\ref{alg:Alg1}) with the following features.
+
+1.~Priority-based node zoning. Nodes are classified into election/waiting zones via dynamically adjusted thresholds derived from cluster size and real-time load probability (RLP). The RLP quantifies node fitness through weighted parameters:
+\begin{equation}
+L_j(t)=(aN_{\mathrm{c}}+bC_{\mathrm{c}}+cM_{\mathrm{c}})/(N_{\mathrm{r}}+C_{\mathrm{r}}+M_{\mathrm{r}}),
+\end{equation}
+where $N$ denotes network bandwidth (measured in Gbps), $C$ denotes the CPU computational resources quantified in vCPUs, and $M$ specifies the memory size (in GB). The coefficients $a$, $b$, and $c$ indicate the normalized proportional weights of the network, CPU, and memory resources relative to a node's total allocable capacity, respectively. In addition, $r$ and $c$ denote the server's complete resource pool and the currently consumed resources across all categories, respectively.  
+
+2.~Dynamic threshold adaptation. Based on the current threshold adaptability, overloaded nodes are demoted to waiting zones directly to delay the triggering of elections.
+
+% 算法1伪代码
+\begin{algorithm}[h!]
+	\small
+	\centering
+	\caption{Leader--follower election algorithm}
+	\label{alg:Alg1}
+	\begin{algorithmic}[1]
+	\REQUIRE $Q_n, N$
+	\STATE Initialize $A_{\text{election}}$, $A_{\text{wait}}$
+	\STATE Sort $Q_i, i \in N$
+	
+	\WHILE{TRUE}
+		\IF{$|A_{\text{election}}| > \beta$}
+			\STATE Add $Q_i$ to $A_{\text{wait}}$
+		\ELSIF{$|A_{\text{wait}}| > \beta$}
+			\STATE Add $Q_i$ to $A_{\text{election}}$
+		\ENDIF
+	\ENDWHILE
+	
+	\STATE Timer $\rightarrow$ Multicast($Q_i$, Heartbeats Message)
+	
+	\IF{$L_i > L_\beta$}
+		\STATE Add $Q_i$ to $A_{\text{wait}}$
+	\ENDIF
+	
+	\IF{$Q_i$ has priority}
+		\STATE Multicast(Move over Message) and wait for acknowledgments
+		\IF{Number of acknowledgments exceeds $N/2$}
+			\STATE $Q_i$ becomes the Leader Node
+		\ELSE
+			\STATE Multicast(End Message)
+		\ENDIF
+	\ENDIF
+	
+	\RETURN $Q_n$
+	\end{algorithmic}
+	\end{algorithm}
+
+In Algorithm~\ref{alg:Alg1}, nodes are initially prioritized, and an election decision threshold $\beta$ is established based on the current cluster size. Nodes exceeding this threshold are placed in the election zone $A_{\text{election}}$, and those falling below the threshold are placed in the waiting zone $A_{\text{wait}}$. Only follower nodes within the election zone are eligible to participate in the election for the leader node. After the election, the priority of the participating follower nodes is increased. The threshold is adjusted dynamically according to real-time conditions. Here, if the number of nodes in the election zone becomes excessive, nodes with lower priority are demoted to the waiting zone. In addition, nodes whose real-time load surpasses the threshold $L_{\text{$\beta$}}$ are immediately relocated to the waiting zone, which reduces the frequency of elections triggered by nodes exceeding load limits during cluster membership. In the event of a leader node failure due to an unexpected process interruption or crash, an election is initiated in the election zone. A follower node that receives greater than 50\% of the votes assumes the leader node's duties.
+
+\subsection{Node dynamic elastic expansion algorithm}
+
+In the orchestration management and scaling of container clouds, the increasing diversity of user requests presents significant challenges, particularly, when handling large-scale, sudden computational tasks. The inflexibility of predefined scaling thresholds, coupled with inefficiencies in scaling operations, can lead to substantial delays. Once the load surpasses these thresholds, scaling operations cannot be performed instantaneously, which places heavy-loaded containers at risk of failure due to overwhelming demand. Auto-scaling is an essential approach to address such issues because it manages computing resources dynamically among microservices in response to workload fluctuations without human intervention. A prominent solution for executing auto-scaling of microservice deployments is the Horizontal Pod Auto-scaler (HPA) \citep{Nguyen2020}. However, existing HPAs exhibit certain limitations, including the inability to scale microservice deployment beyond the predefined resource limits, delayed responses to workload fluctuations, and architectural vulnerabilities that are prone to failures. To address these limitations, research efforts have evolved along two main paths, i.e., enhanced rule-based heuristics, e.g., DMA-HPA, Smart HPA, and ProSmart HPA \citep{Ahmad2025}, and data-driven approaches that employ artificial intelligence. Notably, reinforcement learning (RL), particularly Q-learning, has been actively investigated for proactive and adaptive scaling policies by learning optimal decisions directly from interactions with the environment \citep{Rossi2020}. RL methods show promise in handling complex dynamics; however, they frequently face challenges in training stability, sample efficiency, and generalizability across diverse workload patterns. Drawing on the advantages of both paradigms, i.e., the interpretability of model-based prediction and the adaptability of learning, we propose a dynamic elastic expansion model named DMA-LSTM (Algorithm~\ref{alg:Alg2}). The DMA-LSTM model is designed for large-scale data-model fusion computing tasks, aiming to deliver robust and accurate scaling decisions by decoupling and jointly learning the deterministic trends and stochastic residuals in resource demand.
+
+The DMA-LSTM model adopts a dual-branch hybrid architecture, as shown in Fig.~\ref{fig:Fig5}. Here, the lower branch applies the double moving average (DMA) principle with a short-term window of five time steps and a long-term window of 20 time steps to extract smooth baseline trends from historical RLP sequences. This branch captures the low-frequency inertia inherent in aerospace simulation workloads. The upper branch comprises a lightweight long short-term memory (LSTM) network whose sole purpose is to model the prediction residual, the discrepancy between the DMA trend, and the actual observed load. The final forecast is obtained by elementwise addition of the DMA baseline and the LSTM residual correction. This architecture mitigates the overfitting tendency of pure LSTM models on noisy data and provides accurate resource demand forecasts for future intervals, thereby enabling effective and dynamic adjustment of the scaling thresholds.
+
+% 单栏图片Fig.5
+\begin{figure}[ht!]
+\centering
+\setlength{\abovecaptionskip}{0pt}
+\includegraphics[width=\columnwidth]{pics/Fig5.eps}
+\caption{Structure of DMA-LSTM model}
+\label{fig:Fig5}
+\end{figure}
+
+As shown in Fig.~\ref{fig:Fig5}, in the LSTM architecture, three gates regulate the information flow. Here, the forget gate determines which information is retained or discarded from the previous cell state $\bm{h}_{t-1}$. Its output, denoted $f_{t}$, is calculated as follows.
+
+\begin{align}
+f_t &= \sigma\left(\bm{W}_f \cdot [\bm{h}_{t-1}, \bm{x}_t] + \bm{b}_f\right).
+\end{align}
+	
+We add $M_t(1)$ to the cell state $\bm{h}_{t-1}$, representing the one-step moving average of the resource demand for node $j$ at time $t$.
+\begin{align}
+M_t(1) = \frac{1}{n}\Big( L_j(t) + L_j(t-1) + \dots + L_j(t-n+1) \Big).
+\end{align}
+
+The input gate is responsible for adding new information to the cell state. It comprises two parts, i.e., $i_t$, which controls the extent of the state update, and $\tilde{\bm{C}}_t$ (the candidate cell state), which regulates the new input data. $i_t$ and $\tilde{\bm{C}}_t$ are calculated as follows.
+\begin{align}
+i_t &= \sigma\left(\bm{W}_i \cdot [\bm{h}_{t-1}, \bm{x}_t] + \bm{b}_i\right) \\
+\tilde{\bm{C}}_t &= \tanh\left(\bm{W}_C \cdot [\bm{h}_{t-1}, \bm{x}_t] + \bm{b}_C\right).
+\end{align}
+
+The output gate $\bm{h}_t$ is filtered through a sigmoid layer and is calculated as follows:
+\begin{align}
+\bm{h}_t &= o_t * \tanh\left(\bm{C}_t\right), \\
+o_t &= \sigma\left(\bm{W}_o \cdot [\bm{h}_{t-1}, \bm{x}_t] + \bm{b}_o\right), \\
+\bm{C}_t &= f_t * \bm{C}_{t-1} + i_t * \tilde{\bm{C}}_t,
+\end{align}
+where $o_t$ denotes the input to the sigmoid neural unit, and $\bm{h}_t$ is obtained by applying the tanh function to $\bm{C}_t$.
+
+Finally, the next load demand Lprej $L_j^{\mathrm{pre}}(t+1)$ is predicted by inputting the current RLP value $L_j(t)$.
+
+In Algorithm~\ref{alg:Alg2}, the static scaling threshold $a$ is initially established after the node queue $Q_n$ designed by Algorithm 1, with the dynamic scaling threshold $L_j^{\mathrm{pre}}(t+T)$ determined based on the load demand predicted by the DMA-LSTM model. Typically, $L_j^{\mathrm{pre}}(t+T) < a$. When the cluster load reaches this dynamic threshold, the scaling mechanism is triggered to provision new nodes. By the time the load reaches the static scaling threshold, the scaling process will have  completed, thereby reducing delays. The difference between the dynamic scaling threshold and the actual static threshold is defined as the tolerance zone, which mitigates delays in scaling initiation.
+
+% 算法2伪代码
+\begin{algorithm}[h!]
+	\small
+	\centering
+	\caption{Dynamic elastic expansion algorithm}
+	\label{alg:Alg2}
+	\begin{algorithmic}[1]
+	\REQUIRE $Q_n, N$  \COMMENT{$Q_n$ designed by Algorithm 1}
+	\STATE Initialize $a$
+    \STATE $\text{Sum} \leftarrow 0$
+	
+	\FORALL{$j \in N$}
+		\STATE DMA-LSTM predict $L_j^{\mathrm{pre}}(t+T)$
+		\STATE $\text{Sum} \mathrel{+}= L_j^{\mathrm{pre}}(t+T)$
+	\ENDFOR
+	
+	\IF{$\text{Sum} > N$}
+		\STATE create $Q_{\text{new node}}$ as new node
+		\STATE put node in Expanding Q
+	\ENDIF
+	
+	\RETURN $(new\ Q_n, N+1)$
+	\end{algorithmic}
+\end{algorithm}
+
+\subsection{Load migration scheduling algorithm}
+
+In a distributed microservice architecture, the challenge lies in optimally controlling the node resources. To address this issue, load balancing strategies are employed to ensure balanced scheduling of node resources, preventing nodes from becoming overloaded or underutilized.
+
+Most existing load balancing strategies assume that computational workloads and service response times follow an exponential distribution. However, this assumption is inadequate for data-model fusion tasks, where computational models are invoked on a large scale simultaneously, and frequent data interactions and read-write operations complicate the modeling of service response times.
+
+Thus, we propose a load migration model. Prior to describing this model in detail, we assume that the status information returned by node $j$ comprises a set of $N$ tuples $<Q_i, T_j>$, where $Q_i$ and $T_j$ denote the length of the task queue and the number of idle threads in the thread pool, respectively. The load balancing time $\overline{t}_{i,j}$ for each node is proportional to the task queue length and inversely proportional to the number of concurrent threads processing the tasks. This relationship is expressed as follows.
+\begin{gather}
+\overline{t}_{i,j} = \alpha \mathbb{E}\left[\Delta L_j(t)\right] \Big/ \left<Q_i, T_j\right>, \\
+\left<Q_i, T_j\right>_{1-\text{busy}_{i,j}} \propto \dfrac{1}{\overline{t}_{i,j}},
+\end{gather}
+
+Here, $\left<Q_i, T_j\right>_{1-\text{busy}_{i,j}}$ represents the idle capacity of node $j$ when serving the $i$-th task, and it is inversely proportional to the node's load balancing time. The parameter $\alpha$ is the transmission attenuation coefficient, which is a constant determined by the server's hardware performance. In addition, $\mathbb{E}[\Delta L_j(t)]$ denotes the mathematical expectation of the change in the node's load.
+
+To accurately assess the load status of cloud nodes, we define the task scheduler weight (TSW) as the priority assigned by a node to the current computational task, which is directly proportional to the node's idle capacity. A lower TSW value indicates that the task is neglected.
+\begin{align}
+W_{i,j}(t) = h_{i,j}(t-1)\xi_i\left(L_j(t)-L_j(t-1)\right)\Big/Q_i,
+\end{align}
+
+Here, $\xi_i$ denotes the task complexity, and $h_{i,j}(t-1)$ is the coefficient indicating whether the node was involved in load migration during the previous sampling period. If no load migration has occurred, this coefficient is set to 1. If the node underwent load migration, the coefficient is set to 0.5.
+
+The load migration model optimizes the following objectives.
+1.~Constrain total load transfer (TLT) oscillations. The TLT represents the total amount of load migration between nodes and idle threads, serving as an indicator of the overall system overhead.
+\begin{align}
+U(t) = \sum_{i=1}^{N}\sum_{j=1}^{N}\left\{u_{i,j}(t)\right\},
+\end{align}
+where $u_{i,j}(t)$ represents the load transferred in a single migration.
+
+2.~Minimize node load balancing time. Combining Eqs. (3) and (5), the node load balancing time can be expressed as follows.	
+\begin{align}
+\overline{t}_{i,j} = \frac{\alpha U(t)}{Q_i T_j}.
+\end{align}
+
+Thus, the following loss function is formulated.
+\begin{align}
+\text{Loss} &= \mathbb{E}_{i,j}\left\{\overline{t}_{i,j}(t) + \left\|W_{i,j}(t)\left[U(t)-U(t-1)\right]\right\|^2\right\} \\
+&= \mathbb{E}_{i,j}\Bigg\{\left\|W_{i,j}(t)U(t)\right\|^2 - 2W_{i,j}(t)U(t)U(t-1) \notag \\
+&\quad + \left\|W_{i,j}(t)U(t-1)\right\|^2\Bigg\} + \mathbb{E}_{i,j}\left\{\alpha U(t)/Q_i T_j\right\},
+\end{align}
+
+Here, $\mathbb{E}_{i,j}$ represents the mathematical expectation. When the loss function reaches its minimum, the derivative with respect to $U(t)$ is zero.
+\begin{align}
+\frac{\partial \text{Loss}}{\partial U} &= 2W(t)U(t) - 2W(t)U(t-1) \notag \\
+&\quad + \alpha / Q(t)T(t) = 0.
+\end{align}
+
+Solving it yields the optimal control for load transfer at the t-th sampling time.
+\begin{align}
+U^{*}(t) = U(t-1) - \alpha/2W(t)Q(t)T(t),
+\end{align}
+
+% 算法3伪代码
+\begin{algorithm}[h!]
+	\small
+	\centering
+	\caption{Load migration scheduling algorithm}
+	\label{alg:Alg3}
+	\begin{algorithmic}[1]
+	\REQUIRE $L_n(t), Q_n(t), T_n(t)$
+	\FORALL{$t$ with $0 \le t \le T$}
+	    \STATE $u_{\mathrm{thr}}(t) = \text{mean}\{1-L_{i,j}(t)\}, i,j \in N$
+	    \STATE $\Phi\{desc\} \rightarrow \text{sort } L_{i,j}(t)$
+	    \FORALL{$i \in N, j \in N$}
+	        \STATE $u_{i,j}(t) = \left(L_{i,j}(t)-L_{i,j}(t-1)\right) / \left(Q_i(t)T_j(t)\right)$
+	        \WHILE{$\Phi\{inx\}$ by $1,2,\dots,N$}
+	            \IF{$L_{i,j}(t) + u_{i,j}(t) \ge u_{\mathrm{thr}}(t)$}
+	                \STATE $u_{i,j}(t) = 0$, $h_{i,j}(t) = 1.0$
+	                \STATE $\rightarrow$ trans to $u_{i+1,j+1}(t)$ by $\Phi\{inx+1\}$
+	            \ELSE
+	                \STATE $h_{i,j}(t) = 0.5$
+	            \ENDIF
+	        \ENDWHILE
+	        \STATE $U(t) \mathrel{+}= u_{i,j}(t)$
+	    \ENDFOR
+	    \STATE $U^{*}(t) \leftarrow Q_i(t), L_{i,j}(t), T_j(t)$
+	\ENDFOR
+	\RETURN $U^{*}(t)$
+	\end{algorithmic}
+\end{algorithm}
+
+Moreover, during load migration between nodes, potential issues arising from task surges leading to node overload, thereby triggering additional load migration events, should be addressed to prevent oscillatory migration phenomena. To mitigate this issue, we propose a dynamic load migration scheduling algorithm (Algorithm~\ref{alg:Alg3}) based on the load migration model.
+
+Following the node queue design of Algorithms 1 and 2, Algorithm 3 controls the load migration behavior and prevents load balancing oscillations by selecting nodes with lower TSW as migration targets and marking them for increased selection probability in the subsequent sampling period.
+
+\section{Experimental analysis}
+
+\subsection{Experimental setup}
+
+The proposed MP-DMC framework employs a distributed container cloud architecture with centralized orchestration management. The hardware environment adopts a cluster of 10 Chinese Zhongke Tenglong TL550F-B servers (two 64-core 1.1 GHz S5000C CPUs, 64 GB of RAM, 5 Gbps network bandwidth, and 2.4 TB storage capacity). These instances run on the China Galaxy Kirin Advanced Server Operating System (National Defense Edition) V10, and the data saved in China Shenzhou General Database V7.0.
+
+It comprises two distinct functional categories of cloud nodes, i.e., core service nodes that handle message queuing clusters, distributed data processing, model version control, and persistent storage subsystems, and a computational cluster organized in a leader--follower configuration with five computing nodes. In addition, it provides human-in-the-loop interaction through a web-based client interface.
+
+\begin{figure*}[b]
+	\centering
+	% 第一行
+	\begin{minipage}[t]{0.32\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{pics/Fig6(a).eps}\\[4pt]
+	(a)
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{0.32\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{pics/Fig6(b).eps}\\[4pt]
+	(b)
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{0.32\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{pics/Fig6(c).eps}\\[4pt]
+	(c)
+	\end{minipage}
+	
+	\vspace{1em}
+	
+	% 第二行
+	\begin{minipage}[t]{0.32\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{pics/Fig6(d).eps}\\[4pt]
+	(d)
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{0.32\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{pics/Fig6(e).eps}\\[4pt]
+	(e)
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{0.32\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{pics/Fig6(f).eps}\\[4pt]
+	(f)
+	\end{minipage}
+	
+	\vspace{0.5em}
+	\caption{Three-dimensional display results of data-model fusion simulation tasks: (a) spacecraft close-in simulation; (b) spacecraft detection simulation; (c) near-earth atmosphere simulation; (d) near-earth ionosphere simulation; (e) earth--moon magnetic field simulation; (f) earth--moon solar wind simulation. The computational complexity increases gradually from (a) to (f)}
+	\label{fig:Fig6}
+	\end{figure*}
+
+The proposed MP-DMC framework implements three situational awareness simulation modalities. As shown in Fig.~\ref{fig:Fig6}, these modalities employ the following heterogeneous data-model fusion paradigms.
+
+1.~Spacecraft close-in simulation couples orbital prediction models with real-time telemetry streams from target spacecraft.
+
+2.~Spacecraft detection simulation integrates satellite sensor detection models with real-time telemetry streams from target spacecraft.
+
+3.~Space environment simulation synthesizes physics-based models (near-earth atmosphere, near-earth ionosphere, earth--moon magnetic, and earth--moon solar wind) with space weather indices (Ap / Kp / F10.7 / sunspot).
+
+These simulation tasks, while emulated computationally, are designed to replicate the characteristics of real-world spacecraft operations. The computational complexity increases progressively from model (a) to (f) in Fig.~\ref{fig:Fig6} by incrementally incorporating increasingly demanding processes, e.g., multisensor data fusion, collision probability forecasting, and high-fidelity orbital dynamics. This allows us to evaluate the scalability and robustness of the proposed MP-DMC framework under a controlled but representative set of load conditions.
+
+\subsection{Dynamic election analysis}
+
+This experiment was conducted to evaluate the performance differences between the leader--follower election algorithm in the MP-DMC framework and mainstream election algorithms, e.g., the Paxos, Raft, and PBFT protocols, through 100 election cycles across five nodes.
+
+The statistical results in Fig.~\ref{fig:Fig7}  demonstrate that the conventional algorithms distribute leadership probabilistically, while the proposed MP-DMC framework maintains Node 1 as the primary leader with 97\% stability. This deterministic election strategy reduces topology reconfiguration overhead, thereby improving election efficiency and system availability.
+
+% 单栏图片Fig.7
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{pics/Fig7.eps}
+\caption{Performance comparison of election algorithms}
+\label{fig:Fig7}
+\end{figure}
+
+To validate the efficacy of the proposed election algorithm in enhancing system reliability, a controlled experiment was conducted under equivalent workload ($10^3$ task units) stress testing conditions. Here, the system outage frequency induced by node failures was evaluated and compared among configurations employing this election algorithm and baseline scenarios without our election algorithm. In addition, to evaluate scalability beyond the physical infrastructure, we performed additional tests in a large-scale server cluster environment. Note that we were allocated only five physical cloud nodes. Thus, to test at a larger scale, we created 100 virtual nodes through containerization to benchmark the performance of the dynamic election algorithm. The experimental results are presented in Table ~\ref{Table:1}.
+
+The data in Table~\ref{Table:1} represents the number of service interruptions caused by system crashes. The results demonstrate that our leader--follower election algorithm provides a crucial fault tolerance mechanism by swiftly reelecting and replacing the main control node, thereby preventing system failures under thousand-level task loads. In addition, the results of scalability tests conducted on a large-scale virtualized cluster of 100 nodes confirm that the election algorithm maintains its effectiveness in even more complex environments, enhancing overall system availability and operational stability. Note that while virtualization enables flexible and scalable deployment, it may introduce differences in terms of resource isolation and network overhead compared with physical environments. However, the consistent performance observed across the virtualized nodes suggests that the algorithm's core mechanisms are robust to such environmental variations, supporting its applicability in real-world physical deployments. Furthermore, the performance advantages of the proposed MP-DMC framework over baseline algorithms can be attributed to its optimized election process, which reduces the time required for failure detection and leader reelection, thereby minimizing service disruptions.
+
+\begin{table}[htp!]
+	\small
+	\centering
+	\caption{Reliability enhancement effects of leader--follower election algorithms}
+	\label{Table:1}
+	\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}} ccccccccc }
+	\toprule[0.75pt]
+	\multirow{2}{*}{System} & \multirow{2}{*}{Node} & \multicolumn{7}{c}{Running time (in hours)} \\
+	& & 24 & 48 & 72 & 96 & 120 & 144 & 168 \\
+	\midrule[0.5pt]
+	MP-DMC & \multirow{3}{*}{5} & \multirow{2}{*}{0} & \multirow{2}{*}{0} & \multirow{2}{*}{1} & \multirow{2}{*}{2} & \multirow{2}{*}{2} & \multirow{2}{*}{3} & \multirow{2}{*}{3} \\
+	without election &  &  &  &  &  &  &  &  \\
+	\cmidrule(lr){1-1} \cmidrule(lr){3-9}
+	MP-DMC$^*$ &  & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} \\
+	\midrule[0.5pt]
+	MP-DMC & \multirow{3}{*}{20} & \multirow{2}{*}{0} & \multirow{2}{*}{0} & \multirow{2}{*}{1} & \multirow{2}{*}{1} & \multirow{2}{*}{2} & \multirow{2}{*}{2} & \multirow{2}{*}{3} \\
+	without election &  &  &  &  &  &  &  &  \\
+	\cmidrule(lr){1-1} \cmidrule(lr){3-9}
+	MP-DMC$^*$ &  & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} \\
+	\midrule[0.5pt]
+	MP-DMC & \multirow{3}{*}{50} & \multirow{2}{*}{0} & \multirow{2}{*}{0} & \multirow{2}{*}{2} & \multirow{2}{*}{2} & \multirow{2}{*}{2} & \multirow{2}{*}{4} & \multirow{2}{*}{5} \\
+	without election &  &  &  &  &  &  &  &  \\
+	\cmidrule(lr){1-1} \cmidrule(lr){3-9}
+	MP-DMC$^*$ &  & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{1} \\
+	\midrule[0.5pt]
+	MP-DMC & \multirow{3}{*}{100} & \multirow{2}{*}{0} & \multirow{2}{*}{1} & \multirow{2}{*}{1} & \multirow{2}{*}{2} & \multirow{2}{*}{4} & \multirow{2}{*}{5} & \multirow{2}{*}{6} \\
+	without election &  &  &  &  &  &  &  &  \\
+	\cmidrule(lr){1-1} \cmidrule(lr){3-9}
+	MP-DMC$^*$ &  & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{1} & \textbf{1} & \textbf{1} \\
+	\bottomrule[0.75pt]
+	\end{tabular*}
+\end{table}
+
+\subsection{Elastic expansion performance}
+
+\subsubsection{DMA-LSTM prediction model analysis}
+
+To analyze the performance of the node dynamic elastic scaling algorithm, it was first necessary to validate the efficacy of the internal DMA-LSTM prediction model. The DMA-LSTM model is a dual-branch hybrid, where the lower branch captures smooth baseline trends via DMA, and the upper LSTM branch exclusively corrects short-term prediction residuals. In this evaluation, the model was trained using the Adam optimizer with a learning rate of 0.001, a batch size of 64, and over 100 epochs on a dataset comprising continuous high-frequency load traces from 10 server nodes. Here, each node's load (CPU, memory, and I/O) was sampled every 20 s over a five-month operational period, yielding a total of approximately over 650,000 time steps per metric for model training and evaluation. The dataset was split into training, validation, and test sets at a ratio of 7:2:1, and all features were normalized to the [0, 1] interval.
+
+The prediction accuracy of the DMA-LSTM model was evaluated in terms of the mean absolute error (MAE), mean absolute percentage error (MAPE), and root mean square error (RMSE). The metrics are calculated as follows.
+\begin{equation}
+\mathrm{MAE} = \frac{1}{n} \sum_{i=1}^{n} \left| y_i - \hat{y}_i \right|,
+\end{equation}
+
+Here, $y_i$ and $\hat{y}_i$ denote the true value and the predicted value, respectively.
+\begin{equation}
+\mathrm{MAPE} = \frac{1}{n} \sum_{i=1}^{n} \left| \frac{y_i - \hat{y}_i}{y_i} \right| \times 100.
+\label{eq:S14}
+\end{equation}
+
+\begin{equation}
+\mathrm{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} \left( y_i - \hat{y}_i \right)^2}.
+\end{equation}
+
+As summarized in Table~\ref{Table:2}, the proposed DMA-LSTM model achieves superior predictive accuracy, outperforming all baseline models across all evaluation metrics. Here, all error metrics are reported as percentages relative to the normalized load range [0, 100] to facilitate an effective comparison. Specifically, the DMA-LSTM model reduces the RMSE by 1.39 percentage points (from 5.21\% to $3.82\% \pm 0.16\%$), the MAE by 0.47 percentage points (from 4.15\% to $3.68\% \pm 0.11\%$), and the MAPE by 1.15 percentage points (from 5.66\% to $4.51\% \pm 0.23\%$) compared with the standard LSTM model. These improvements stem from the DMA attention mechanism's ability to selectively focus on relevant patterns, e.g., recurring workload trends or abrupt load changes. By emphasizing these salient features, DMA-LSTM reduces prediction errors precisely at points where accurate forecasting is most challenging, leading to the observed improvements.
+
+\begin{table}[htp!]
+	\small
+	\centering
+	\caption{Load prediction accuracy of models}
+	\label{Table:2}
+	\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}} lccc}
+	\toprule[0.75pt]
+	Model & RMSE & MAE & MAPE \\
+	\midrule[0.5pt]
+	Historical mean & 12.56\% & 9.45\% & 13.23\% \\
+	\midrule[0.5pt]
+	SVM & 6.84\% & 5.22\% & 7.41\% \\
+	\midrule[0.5pt]
+	LSTM & 5.21\% & 4.15\% & 5.66\% \\
+	\midrule[0.5pt]
+	DMA & 7.01\% & 6.71\% & 7.92\% \\
+	\midrule[0.5pt]
+	DMA-LSTM$^*$ & $3.82\% \pm 0.16\%$ & $3.68\% \pm 0.11\%$ & $4.51\% \pm 0.23\%$ \\
+	\bottomrule[0.75pt]
+	\end{tabular*}
+	\par\vspace{0.5em}
+	\parbox{\columnwidth}{\footnotesize Note: For the proposed DMA-LSTM model, the results are reported as the mean $\pm$ standard deviation over five independent runs with different random initializations. The baseline results are reported as the best scores obtained during hyperparameter tuning (consistent with standard practice in time-series forecasting benchmarks).}
+	\end{table}
+
+The comparison in Fig.~\ref{fig:Fig8} demonstrates that the DMA-LSTM model captures sudden load spikes and fluctuations more efficiently, which are frequently missed or smoothed out by base-gains in overall accuracy. This superior predictive capability ensures that the subsequent elastic scaling algorithm can adjust resources proactively and accurately, forming the foundation for the robust performance of the proposed MP-DMC framework.
+
+% 单栏图片Fig.8
+\begin{figure}[H]
+\centering
+\setlength{\abovecaptionskip}{0pt}
+\includegraphics[width=\columnwidth]{pics/Fig8.eps}
+\caption{Load prediction accuracy}
+\label{fig:Fig8}
+\end{figure}
+
+\subsubsection{Dynamic elastic expansion analysis}
+
+A comparative analysis of the performance differences between the node dynamic elastic expansion algorithm with the DMA-LSTM model in the proposed MP-DMC framework and mainstream scaling algorithms, including the HPA, DMA-HPA, ProSmart HPA, and RL algorithms, was conducted under varying task loads. Here, the performance metrics include expansion efficiency and effectiveness, with expansion effectiveness evaluated using the cluster load balance (CLB) index.
+
+The CLB refers to the degree of load distribution across cloud nodes, where a smaller CLB value indicates a more evenly distributed allocation of resources.
+
+\begin{equation}
+C = \sqrt{\frac{1}{N} \left( \sum_{i=1}^{N} \left( \Delta L_i - \overline{\Delta L} \right)^2 \right)},
+\end{equation}
+
+Here, $N$ denotes the number of nodes, $\Delta L_i$ denotes the change in the RLP for the $i$-th cloud node before and after receiving the computational task, and $\Delta L_i$ denotes the average change in the load proportion across all cloud nodes.
+
+To ensure a fair and reproducible comparison, we configured the baseline algorithms as follows. For all HPA-based baselines (i.e., HPA, DMA-HPA, and ProSmart HPA), common Kubernetes scaling parameters were set uniformly. The target CPU utilization percentage was 75\%, the stabilization window for scaling down and scaling up was 300 and 60 s, respectively, to prevent thrashing, and the minimum and maximum numbers of pod replicas were set to 1 and 10, respectively.
+
+The RL-based baseline was implemented using a Tabular Q-learning approach, following the threshold adjustment policy proposed by Rossi et al. Unlike Deep Q-Networks (DQN) which use neural networks for function approximation, this implementation employs a discretized state space mapped to a Q-table. This design choice prioritizes low computational overhead and deterministic convergence in the operational environment.
+
+The experimental results are shown in Fig.~\ref{fig:Fig9}. The results demonstrate that the different algorithms exhibit distinct elastic expansion characteristics under varying workloads. For example, as the task load increases, both the HPA and DMA-HPA algorithms exhibit growth patterns in both elastic expansion response time and CLB. This is primarily because higher workloads introduce greater scheduling complexity and resource contention, inevitably prolonging decision-making and adjustment processes. Specifically, the experimental analysis reveals a critical workload threshold at 100 tasks, beyond which all resource elastic expansion algorithms demonstrate more stabilized growth patterns in expansion response time. This plateauing behavior indicates their enhanced suitability for large-scale scheduling scenarios compared with smaller task volumes.
+
+% 单栏图片Fig.9
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=\linewidth]{pics/Fig9(a).eps}\\[5pt]
+	(a)\\[10pt]
+	\includegraphics[width=\linewidth]{pics/Fig9(b).eps}\\[5pt]
+	(b)
+	\caption{Performance comparison of the elastic expansion algorithm: (a) expansion speed; (b) expansion effectiveness}
+	\label{fig:Fig9}
+\end{figure}
+
+\begin{table*}[b]
+	\centering
+	\small
+	\caption{Task response and load balance times of task scheduling algorithms}
+	\label{Table:3}
+	\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} ccccccccccc}
+	\toprule[0.75pt]
+	\multirow{3}{*}{Algorithm} 
+	& \multicolumn{5}{c}{Average task response time (s)} 
+	& \multicolumn{5}{c}{Average node load balancing time (s)} \\
+	\cmidrule(lr){2-11}
+	& \multicolumn{5}{c}{Number of simulation tasks} 
+	& \multicolumn{5}{c}{Number of simulation tasks} \\
+	\cmidrule(lr){2-11}
+	& 10 & 50 & 100 & 500 & 1000 
+	& 10 & 50 & 100 & 500 & 1000 \\
+	\midrule[0.5pt]
+	Round-robin method 
+	& 0.039 & 0.053 & 0.068 & 0.063 & 0.121 
+	& 16.170 & 40.410 & 86.450 & 350.083 & 755.897 \\
+	Pure random method 
+	& 0.036 & 0.045 & 0.060 & 0.072 & 0.106 
+	& 15.873 & 39.815 & 85.790 & 348.258 & 749.950 \\
+	Weighted random method 
+	& 0.035 & 0.049 & 0.058 & 0.077 & 0.104 
+	& 15.998 & 38.953 & 83.922 & 351.658 & 749.688 \\
+	MP-DMC$^*$ 
+	& \textbf{0.025} & \textbf{0.032} & \textbf{0.048} & \textbf{0.054} & \textbf{0.084} 
+	& \textbf{14.121} & \textbf{36.488} & \textbf{69.892} & \textbf{305.875} & \textbf{640.472} \\
+	\bottomrule[0.75pt]
+	\end{tabular*}
+	\vspace{0.4em}
+	\parbox{\textwidth}{\footnotesize Note: The values reported for MP-DMC$^*$ represent the mean over five independent runs. The standard deviations for the MP-DMC$^*$ response times and load balancing times ranged from $\pm 0.002$s to $\pm 0.007$s and $\pm 0.7$s to $\pm 3.2$s, respectively (increasing slightly with task count).}
+	\end{table*}
+
+Remarkably, the proposed MP-DMC framework demonstrates superior scalability with its response time remaining consistently below 6 s across all tested scales despite increasing data volumes. This advantage stems from the predictive capabilities of the DMA-LSTM model, which forecasts workload spikes accurately and allows the elastic scaling algorithm to proactively provision resources before demand surges. Consequently, the MP-DMC framework avoids the reactive delays that cause the compared algorithms' response times to escalate under heavy load conditions. Under small-scale task loads, the ProSmart HPA and RL algorithms outperform the MP-DMC framework. However, beyond 500 tasks, the MP-DMC framework's CLB value increases at a slower rate compared with the other algorithms, and it achieved a shorter elastic expansion response time. These results indicate that the MP-DMC framework is more effective at suppressing cluster load imbalance under heavier workloads. In contrast, the baseline algorithms frequently rely on threshold-based or reactive policies that can trigger overprovisioning or underprovisioning, thereby exacerbating cluster imbalance. These quantitative comparisons highlight the MP-DMC framework's architectural advantages in terms of maintaining system stability during workload fluctuations.
+
+\subsection{Migration scheduling effectiveness}
+
+We also performed a comprehensive comparative analysis of scheduling algorithms across three critical situational awareness simulation scenarios, i.e., spacecraft close-in, spacecraft detection, and space environment modeling. Here, we benchmarked the load migration algorithm against the classic round-robin, pure random, and weighted random scheduling strategies.
+
+The performance was evaluated in terms of the task response time and node load balancing time. The latter metric is operationally defined as the mean maximum duration required for RLP stabilization across compute nodes during scheduling transitions.
+
+\begin{figure*}[htbp]
+	\centering
+	% 第一行
+	\begin{minipage}[t]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{pics/Fig10(a).eps}\\[4pt]
+		(a)
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{pics/Fig10(b).eps}\\[4pt]
+		(b)
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{pics/Fig10(c).eps}\\[4pt]
+		(c)
+	\end{minipage}
+	% 第二行
+	\begin{minipage}[t]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{pics/Fig10(d).eps}\\[4pt]
+		(d)
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{pics/Fig10(e).eps}\\[4pt]
+		(e)
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{pics/Fig10(f).eps}\\[4pt]
+		(f)
+	\end{minipage}
+	
+	\caption{Performance comparison of task scheduling algorithms. Each graph compares the task response time and node load balancing time of the scheduling algorithms under different simulation tasks: (a) spacecraft close-in, (b) spacecraft detection, (c) near-earth atmosphere, (d) near-earth ionosphere, (e) earth--moon magnetic field, and (f) earth--moon solar wind simulations}
+	\label{fig:Fig10}
+	\end{figure*}
+
+The experimental results are shown in Fig.~\ref{fig:Fig10}. In the near-earth ionosphere simulations, the MP-DMC framework achieved an average response time of 45.2 ms in 10--$10^3$ task units, with 166.34 s average node load balancing time. For the earth--moon solar wind modeling, the proposed framework obtained an average latency and average load stabilization time of 52.4 ms and 390.20 s, respectively, in the same task units. In this scenario, the increased stabilization time reflects the greater difficulty of balancing workloads under more volatile task characteristics. However, the MP-DMC framework maintains relatively stable response times, highlighting the robustness of its predictive scheduling mechanism. Compared with the well-performing weighted random scheduling algorithm, the MP-DMC framework reduced the task response time to within the 12.8--21.4 ms range for each task type. In addition, it reduced the node load balancing time to within the 13.0--78.34 s range, demonstrating faster stabilization. These improvements are primarily attributable to the DMA-LSTM model's ability to forecast workload fluctuations with higher accuracy, coupled with an effective load migration strategy that enables proactive (rather than reactive) resource allocation. In contrast, weighted random scheduling relies on static probabilities or heuristic weights, which cannot adapt to real-time changes in system state, frequently resulting in a suboptimal distribution and longer convergence times. To offer a clearer overview, the average results from the six simulation tasks are summarized in Table~\ref{Table:3}. The results consistently demonstrates the scheduling advantages of the proposed MP-DMC framework.
+
+Finally, ablation experiments were conducted to isolate and evaluate the individual contributions of the three core components in the proposed MP-DMC framework, i.e., the election-optimized leader--follower mechanism, the DMA-LSTM-based predictive model for dynamic elastic scaling, and the load migration strategy. Here, we constructed three ablated variants: (1) --E, which replaces the leader--follower election mechanism with a static master node without automatic reelection; (2) --S, which employs a fixed number of cluster nodes; and (3) --M, which disables the dynamic task migration policy and falls back to a static scheduling strategy. All variants were evaluated under the same simulation tasks, and the results are presented in Table~\ref{Table:4}.
+
+\begin{table}[H]
+    \centering
+    \setlength{\tabcolsep}{4pt}% 缩小列间距，避免超宽
+    \caption{Contributions of core MP-DMC components}
+    \label{Table:4}
+    \begin{tabularx}{\columnwidth}{@{}XXXXXXX@{}}
+    \toprule[0.75pt]
+    \multirow{3}{*}{Config} 
+    & \multicolumn{3}{c}{Response time (s)} 
+    & \multicolumn{3}{c}{Load balance time (s)} \\
+    \cline{2-7}
+    & \multicolumn{3}{c}{Number of tasks} 
+    & \multicolumn{3}{c}{Number of tasks} \\
+    \cline{2-7}
+    & 10 & 100 & 1000 
+    & 10 & 100 & 1000 \\
+    \midrule[0.5pt]
+    Full 
+    & 0.03 & 0.05 & 0.08 
+    & 14.12 & 69.89 & 640.47 \\
+    -E 
+    & 0.03 & 0.05 & 0.11 
+    & 16.15 & 84.27 & 752.13 \\
+    -S 
+    & 0.02 & 0.05 & 0.09 
+    & 19.41 & 105.34 & 925.21 \\
+    -M 
+    & 0.02 & 0.05 & 0.11 
+    & 24.39 & 132.52 & 1180.88 \\
+    \bottomrule[0.75pt]
+    \end{tabularx}
+    \vspace{0.4em}
+    \parbox{\columnwidth}{\footnotesize Note: All values represent the mean over five independent experimental runs. The standard deviations for response time ranged from $\pm 0.001$ s to $\pm 0.004$ s across configurations, and the standard deviations for load balance time ranged from $\pm 0.5$ s to $\pm 4.2$ s (increasing proportionally with task count).}
+\end{table}
+
+The results demonstrate that each component plays a critical and distinct role in achieving the overall performance of the proposed MP-DMC framework. For example, removing the leader--follower election mechanism results in a consistent increase in both response time and load balancing time across all task scales. For example, at 1000 tasks, the response time increases from 0.08 s to 0.11 s, while the load balancing time increases by approximately 17.4\%. This degradation occurs because, without automatic reelection, any failure or bottleneck at the master node cannot be recovered quickly, leading to prolonged scheduling delays and imbalanced load distribution. In addition, disabling auto-scaling leads to an even more pronounced impact, particularly on load balancing time. This confirms that the DMA-LSTM model's elastic scaling mechanism is essential for dynamically provisioning resources in response to predicted load spikes, thereby preventing severe imbalance under heavy workloads. Note that the w/o Auto-Scaling configuration disables the entire scaling pipeline. The isolated contribution of the DMA-LSTM predictor over simpler forecasting baselines is quantified separately in Table~\ref{Table:2}, where DMA-LSTM achieves a 1.39 percentage point reduction in RMSE compared with the standard LSTM. The most significant degradation is observed when the migration strategy is removed. At 1000 tasks, the load balancing time surges to 1180.88 s, nearly double that of the full MP-DMC framework. Without migration, tasks remain on overloaded nodes, and the scheduler cannot actively rebalance the system. This highlights the importance of migration as a fine-grained adjustment mechanism that complements predictive scaling.
+
+A further analysis of the results in Table~\ref{Table:4} reveals that the relative importance of these three components is highly dependent on the scale of the workload. Under a light load (10 tasks), the performance gaps among the different configurations are negligible, which indicates that the system operates efficiently even without a dynamic election mechanism. As the workload increases to a moderate level (100 tasks), the absence of auto-scaling begins to impose an observable penalty, i.e., the load balance time increases by approximately 50.7\% compared with the full MP-DMC framework, whereas removing the election mechanism causes an increase of only 20.6\%. These results demonstrate that predictive auto-scaling (driven by the DMA-LSTM model) is the dominant performance enabler as the workload accumulates by proactively provisioning resources before congestion occurs. In the high-load scenario (1000 tasks), the w/o Migration configuration suffers the most severe penalty. Here, the load balance time exhibits an 84\% increase over the full MP-DMC framework, far exceeding the degradation observed in the w/o Auto-Scaling (44.5\%) and w/o Election (17.4\%) configurations. This stark contrast confirms that dynamic task migration is indispensable. In summary, the results of the ablation study validate the complementary nature of the MP-DMC framework's three core mechanisms. In summary, the election mechanism offers lightweight fault tolerance across all scales, auto-scaling delivers proactive capacity expansion under moderate growth, and migration acts as the critical safety valve during extreme load surges.
+
+\section{Conclusions}
+
+This paper has proposed the distributed MP-DMC framework for data-model fusion computation in space situational awareness simulations. The proposed framework addresses three critical challenges in cloud-based simulation systems. First, inefficient node orchestration is resolved through a priority-based dynamic election algorithm that reduces leader node changes by 97\% compared with the Paxos and Raft algorithms. Second, imbalanced resource allocation under high concurrency is mitigated by the DMA-LSTM model's elastic expansion strategy achieving sub-6 s response times for 2000 tasks, outperforming existing algorithms, including the HPA, DMA-HPA, ProSmart HPA, and RL algorithms. Third, load balancing oscillations during data-model fusion are suppressed via TSW-prioritized migration, achieving faster stabilization compared with the round-robin, pure random, weighted random, and other traditional task scheduling approaches.
+
+Beyond the aerospace situational awareness simulation context, the proposed MP-DMC framework demonstrates broader applicability due to its stable leader selection, proactive resource allocation based on workload forecasting, and efficient load balancing under dynamic conditions. In particular, the core architecture of the DMA-LSTM model, which decouples trend prediction from residual learning, addresses a class of time-series forecasting problems characterized by nonstationarity. This design is not dependent on domain-specific assumptions, which makes it suitable for other scenarios with similar data patterns, including industrial Internet of Things platforms that require reliable node coordination and prediction, as well as cloud data centers that rely on predictive resource scaling for cost efficiency.
+
+Future work will proceed with a focus on two complementary directions. First, we plan to extend the MP-DMC framework to deep space scenarios, e.g., digital simulation of earth--moon space and deep space exploration mission planning. These environments impose even greater demands on node coordination, resource elasticity, and load stability due to longer communication delays, highly volatile workloads, and elevated mission criticality. The proposed MP-DMC framework's demonstrated capabilities in addressing analogous challenges within the current context provide a strong foundation for such extensions. Second, we intend to extend the evaluation of the leader--follower election mechanism by quantifying leader reelection latency and task recovery time during sudden node failures. In addition, we plan to explore predictive failure models and finer-grained component-level validation under fault and stress conditions to enable proactive leader handoff and enhance system stability for longer task cycles in these extreme environments. Collectively, we expect that these efforts will harden the MP-DMC framework for the unprecedented coordination challenges posed by next-generation space exploration architectures.
+
+\balance
+
+\begin{thebibliography}{}\footnotesize
+\itemsep -4pt
+\vspace{-8pt}
+
+
+\bibitem[\protect\astroncite{Ahmad {et~al.}}{2025}]{Ahmad2025}
+Ahmad H, Treude C, Wagner M, {et~al.}, 2025.
+\newblock Towards resource-efficient reactive and proactive auto-scaling for microservice architectures.
+\newblock {\em J Syst Softw}, 225:112390. \\
+https://doi.org/10.1016/j.jss.2025.112390
+
+
+\bibitem[\protect\astroncite{Cui {et~al.}}{2021}]{Cui2021}
+Cui HT, Zhang C, Ding X, {et~al.}, 2021.
+\newblock Evaluation framework for development organizations' adaptability to micro-services architecture.
+\newblock {\em J Softw}, 32(5):1256-1283 (in Chinese). \\
+https://doi.org/10.13328/j.cnki.jos.006232
+
+
+\bibitem[\protect\astroncite{Dayal {et~al.}}{2014}]{Dayal2014}
+Dayal J, Bratcher D, Eisenhauer G, {et~al.}, 2014.
+\newblock Flexpath: type-based publish/subscribe system for large-scale science analytics.
+\newblock 14\textsuperscript{th} IEEE/ACM Int Symp on Cluster, Cloud and Grid Computing, p.246-255. \\
+https://doi.org/10.1109/CCGrid.2014.104
+
+
+\bibitem[\protect\astroncite{Ding {et~al.}}{2020}]{Ding2020}
+Ding TC, Qian SY, Zhu WD, {et~al.}, 2020.
+\newblock Comat: an effective composite matching framework for content-based pub/sub systems.
+\newblock IEEE Int Conf on Parall. \& Distributed Processing with Applications, Big Data \& Cloud Computing, Sustainable Computing \& Communications, Social Computing \& Networking, p.236-243. \\
+https://doi.org/10.1109/ISPA-BDCloud-SocialCom-SustainCom51426.2020.00055
+
+
+\bibitem[\protect\astroncite{Ding {et~al.}}{2025}]{Ding2025}
+Ding WH, Ding XH, Xu ZP, {et~al.}, 2025.
+\newblock Simulation technology for large-scale satellite cloud network with the integration of digital and reality.
+\newblock {\em Space-Integr-Ground Inform Netw}, 6(1):64-77 (in Chinese). \\
+https://doi.org/10.11959/j.issn.2096-8930.2025008
+
+
+\bibitem[\protect\astroncite{Dragoni {et~al.}}{2017}]{Dragoni2017}
+Dragoni N, Lanese I, Larsen ST, {et~al.}, 2017.
+\newblock Microservices: how to make your application scale.
+\newblock Online. http://arxiv.org/abs/1702.07149.
+
+
+\bibitem[\protect\astroncite{Feng {et~al.}}{2020}]{Feng2020}
+Feng ZY, Xu YW, Xue X, {et~al.}, 2020.
+\newblock Review on the development of microservice architecture.
+\newblock {\em J Comput Res Dev}, 57(5):1103-1122 (in Chinese). \\
+https://doi.org/10.7544/issn1000-1239.2020.20190460
+
+
+\bibitem[\protect\astroncite{Guo {et~al.}}{2019}]{Guo2019}
+Guo W, {et~al.}, 2019.
+\newblock DolphinScheduler.
+\newblock Online. https://dolphinscheduler.apache.org/zh-cn/.
+
+
+\bibitem[\protect\astroncite{Lamport}{1998}]{Lamport1998}
+Lamport L, 1998.
+\newblock The part-time parliament.
+\newblock {\em ACM Trans Comput Syst}, 16(2):133-169. \\
+https://doi.org/10.1145/279227.279229
+
+
+\bibitem[\protect\astroncite{Larsson}{2021}]{Larsson2021}
+Larsson M, 2021.
+\newblock {\em Microservices with Spring Boot and Spring Cloud: Build Resilient and Scalable Microservices using Spring Cloud, Istio, and Kubernetes}.
+\newblock 2nd ed. Birmingham: Packt Publishing.
+
+
+\bibitem[\protect\astroncite{Lei {et~al.}}{2024}]{Lei2024}
+Lei X, Yang LM, Zhu YY, {et~al.}, 2024.
+\newblock Digital-analog hybrid simulation platform construction and characteristic research of Baihetan-Jiangsu hybrid cascaded UHVDC project.
+\newblock {\em Power Syst Technol}, 48(1):434-442 (in Chinese). \\
+https://doi.org/10.13335/j.1000-3673.pst.2023.0579
+
+
+\bibitem[\protect\astroncite{Li {et~al.}}{2024}]{Li2024}
+Li L, Li HZ, Li T, 2024.
+\newblock Multi-primary-node Byzantine fault-tolerant consensus mechanism based on Raft.
+\newblock {\em J Guangxi Norm Univ (Nat Sci Ed)}, 42(3):122-130 (in Chinese). \\
+https://doi.org/10.16088/j.issn.1001-6600.2023100805
+
+
+\bibitem[\protect\astroncite{Liang {et~al.}}{2017}]{Liang2017}
+Liang F, {et~al.}, 2017.
+\newblock Apache Dubbo.
+\newblock Online. https://github.com/apache/dubbo.
+
+
+\bibitem[\protect\astroncite{Liu and Weissman}{2015}]{LiuF2015}
+Liu F, Weissman JB, 2015.
+\newblock Elastic job bundling: an adaptive resource request strategy for large-scale parallel applications.
+\newblock Proc Int Conf for High Performance Computing, Networking, Storage and Analysis, article 33. \\
+https://doi.org/10.1145/2807591.2807610
+
+
+\bibitem[\protect\astroncite{Liu {et~al.}}{2023}]{Liu2023}
+Liu WG, Cui JH, Li TT, {et~al.}, 2023.
+\newblock A space-efficient fair cache scheme based on machine learning for NVMe SSDs.
+\newblock {\em IEEE Trans Parall. Distrib Syst}, 34(1):383-399. \\
+https://doi.org/10.1109/TPDS.2022.3221410
+
+
+\bibitem[\protect\astroncite{Luo {et~al.}}{2022}]{Luo2022}
+Luo H, Jiang W, Liu MW, {et~al.}, 2022.
+\newblock Multi resource load balancing optimization method based on microservice architecture.
+\newblock {\em Sci Technol Eng}, 22(5):1965-1971 (in Chinese). \\
+https://doi.org/10.3969/j.issn.1671-1815.2022.05.030
+
+
+\bibitem[\protect\astroncite{Ma {et~al.}}{2023}]{MaHC2023}
+Ma HC, Si L, Tan C, 2023.
+\newblock Research on VR system of shearer based on fusion of sensor data and model.
+\newblock {\em Coal Mine Mach}, 44(6):200-204 (in Chinese). \\
+https://doi.org/10.13436/j.mkjx.202306061
+
+
+\bibitem[\protect\astroncite{Ma {et~al.}}{2017}]{MaY2017}
+Ma Y, Yan RY, Sun JW, {et~al.}, 2017.
+\newblock A MQTT protocol message push server based on RocketMQ.
+\newblock 10\textsuperscript{th} Int Conf on Intelligent Computation Technology and Automation, p.295-298. \\
+https://doi.org/10.1109/ICICTA.2017.72
+
+
+\bibitem[\protect\astroncite{Mesbahi {et~al.}}{2019}]{Mesbahi2019}
+Mesbahi MR, Rahmani AM, Hosseinzadeh M, 2019.
+\newblock Dependability analysis for characterizing Google cluster reliability.
+\newblock {\em Int J Commun Syst}, 32(16):e4127. \\
+https://doi.org/10.1002/dac.4127
+
+
+\bibitem[\protect\astroncite{Nguyen {et~al.}}{2020}]{Nguyen2020}
+Nguyen TT, Yeom YJ, Kim T, {et~al.}, 2020.
+\newblock Horizontal pod autoscaling in Kubernetes for elastic container orchestration.
+\newblock {\em Sensors}, 20(16):4621. \\
+https://doi.org/10.3390/s20164621
+
+
+\bibitem[\protect\astroncite{Pathak and Kalaiarasan}{2021}]{Pathak2021}
+Pathak A, Kalaiarasan C, 2021.
+\newblock RabbitMQ queuing mechanism of publish subscribe model for better throughput and response.
+\newblock Fourth Int Conf on Electrical, Computer and Communication Technologies, p.1-7. \\
+https://doi.org/10.1109/ICECCT52121.2021.9616722
+
+
+\bibitem[\protect\astroncite{Pivotal {et~al.}}{2018}]{Pivotal2018}
+Pivotal, {et~al.}, 2018.
+\newblock Spring Cloud scheduler.
+\newblock Online. https://github.com/spring-attic/spring-cloud-scheduler.
+
+
+\bibitem[\protect\astroncite{Rossi {et~al.}}{2020}]{Rossi2020}
+Rossi F, Cardellini V, Presti FL, 2020.
+\newblock Self-adaptive threshold-based policy for microservices elasticity.
+\newblock 28\textsuperscript{th} Int Symp on Modeling, Analysis, and Simulation of Computer and Telecommunication Systems, p.1-8. \\
+https://doi.org/10.1109/mascots50786.2020.9285951
+
+
+\bibitem[\protect\astroncite{Shona and Sharma}{2023}]{Shona2023}
+Shona M, Sharma R, 2023.
+\newblock Implementation and comparative analysis of static and dynamic load balancing algorithms in SDN.
+\newblock Int Conf for Advancement in Technology, p.1-7. \\
+https://doi.org/10.1109/ICONAT57137.2023.10080430
+
+
+\bibitem[\protect\astroncite{Shrimal {et~al.}}{2024}]{Shrimal2024}
+Shrimal M, Sharma AK, Patel M, 2024.
+\newblock A novel hybrid load balancing method to achieve quality of service (QoS) in cloud-based environments.
+\newblock 3\textsuperscript{rd} Int Conf on Sentiment Analysis and Deep Learning, p.325-328. \\
+https://doi.org/10.1109/ICSADL61749.2024.00059
+
+
+\bibitem[\protect\astroncite{Tsenos and Kalogeraki}{2021}]{Tsenos2021}
+Tsenos M, Kalogeraki V, 2021.
+\newblock Dynamic rate control for topic-based pub/sub systems.
+\newblock 22\textsuperscript{nd} IEEE Int Conf on Mobile Data Management, p.272-273. \\
+https://doi.org/10.1109/MDM52706.2021.00057
+
+
+\bibitem[\protect\astroncite{Ullah {et~al.}}{2013}]{Ullah2013}
+Ullah MH, Park SS, No J, {et~al.}, 2013.
+\newblock A collaboration mechanism between wireless sensor network and a cloud through a pub/sub-based middleware service.
+\newblock The 5\textsuperscript{th} Int Conf on Evolving Internet, p.38-42.
+
+
+\bibitem[\protect\astroncite{Wang {et~al.}}{2023}]{Wang2023}
+Wang YZ, Yu JQ, Yu ZB, 2023.
+\newblock Resource scheduling techniques in cloud from a view of coordination: a holistic survey.
+\newblock {\em Front Inform Technol Electron Eng}, 24(1):1-40. \\
+https://doi.org/10.1631/FITEE.2100298
+
+
+\bibitem[\protect\astroncite{Wei {et~al.}}{2025}]{Wei2025}
+Wei MD, Li YF, Wang YY, {et~al.}, 2025.
+\newblock Optimizing real-time e-commerce data streams: a comparative analysis of serialization and topic design patterns in Apache Kafka.
+\newblock Int Conf on Computing, Networking and Communications, p.334-339. \\
+https://doi.org/10.1109/ICNC64010.2025.10993561
+
+
+\bibitem[\protect\astroncite{Xu {et~al.}}{2015}]{Xu2015}
+Xu XL, {et~al.}, 2015.
+\newblock XXL-JOB, a distributed task scheduling framework.
+\newblock Online. https://github.com/xuxueli/xxl-job.
+
+
+\bibitem[\protect\astroncite{Xu {et~al.}}{2023}]{Xu2023}
+Xu ZC, Zhao DP, Liang WF, {et~al.}, 2023.
+\newblock HierFedML: aggregator placement and UE assignment for hierarchical federated learning in mobile edge computing.
+\newblock {\em IEEE Trans Parall. Distrib Syst}, 34(1):328-345. \\
+https://doi.org/10.1109/TPDS.2022.3218807
+
+
+\bibitem[\protect\astroncite{Yang {et~al.}}{2004}]{Yang2004}
+Yang T, Zhou XS, Lin Y, 2004.
+\newblock A publish-subscribe system based on CORBA.
+\newblock {\em Comput Eng}, 30(10):77-78 (in Chinese). \\
+https://doi.org/10.3969/j.issn.1000-3428.2004.10.029
+
+
+\bibitem[\protect\astroncite{Yin {et~al.}}{2015}]{Yin2015}
+Yin JB, He SJ, Zhao F, {et~al.}, 2015.
+\newblock Design and implementation of intelligent load-balancing heterogeneous data source middleware based on ActiveMQ and XML.
+\newblock Int Conf on Industrial Informatics - Computing Technology, Intelligent Technology, Industrial Information Integration, p.255-258. \\
+https://doi.org/10.1109/ICIICII.2015.145
+
+
+\bibitem[\protect\astroncite{Zhang {et~al.}}{2021}]{Zhang2021}
+Zhang CY, Chen WY, Chen Q, {et~al.}, 2021.
+\newblock Distributed intelligent reflecting surfaces-aided device-to-device communications system.
+\newblock {\em J Commun Inf Netw}, 6(3):197-207. \\
+https://doi.org/10.23919/jcin.2021.9549117
+
+
+\bibitem[\protect\astroncite{Zhang}{2023}]{Zhang2023}
+Zhang Y, 2023.
+\newblock Research on fault diagnosis of piston pump based on digital analog fusion.
+\newblock MS Thesis, North University of China, Taiyuan, China (in Chinese). \\
+https://doi.org/10.27470/d.cnki.ghbgc.2023.000897
+
+
+\bibitem[\protect\astroncite{Zheng {et~al.}}{2025}]{Zheng2025}
+Zheng BY, Gao YH, Guo XK, 2025.
+\newblock BE-Raft: a Raft consensus algorithm with enhanced election determinism.
+\newblock {\em Comput Simul}, 42(11):326-330, 396 (in Chinese). \\
+https://doi.org/10.3969/j.issn.1006-9348.2025.11.063
+\end{thebibliography}
+
+\end{document}
