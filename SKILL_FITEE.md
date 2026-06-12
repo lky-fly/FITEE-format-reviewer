@@ -382,6 +382,7 @@ description: "FITEE 期刊（ENGINEERING Information Technology & Electronic Eng
 | 38 | **符号解释顶格** | grep `where` `Here` → 公式后的 where 段须顶格（行首无缩进/`\qquad`） | 4.3 |
 | 39 | **全称缩写仅首词大写** | grep `[A-Z][a-z]+ [A-Z][a-z]+ \([A-Z]{2,}\)` → 全称仅首词首字母大写（`generalized memory polynomial (GMP)`），专有名词除外（`New Radio (NR)`） | 6.4 |
 | 40 | **公式前后禁止空行** | 检查 `\begin{equation}` 前一行和 `\end{equation}` 后一行 → 不得为空行 | 4.3 |
+| 41 | **参考文献用词缩写** | grep `Microwave` `Wireless ` `Control` → `Microw` `Wirel` `Contr`（IEEE标准缩写） | 5.9 |
 
 > **执行方式**：审查时按此表逐行执行 grep，输出命中行，再人工判断是否违规。不得跳过任何行。
 
