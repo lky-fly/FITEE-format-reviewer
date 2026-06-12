@@ -269,7 +269,7 @@ description: "FITEE 期刊（ENGINEERING Information Technology & Electronic Eng
 - 会议：`作者姓名, 年份. 标题. 会议名, p.页码-页码. https://doi.org/...`
 - 会议名称**正体**（不用 `{\em ...}`）
 - 序数词**上标**：`28\textsuperscript{th}`、`3\textsuperscript{rd}`、`22\textsuperscript{nd}`
-- ⚠️ **页码范围用单连字符 `-`**，不用 `--`（`p.1-4` 非 `p.1--4`）
+- ⚠️ **页码范围用双连字符 `--`**，`p.1--4`（非 `p.1-4`）
 
 ### 5.9 期刊/会议名缩写
 - `Parallel` → `Parall.`（期刊/会议名中一律缩写）
@@ -377,7 +377,7 @@ description: "FITEE 期刊（ENGINEERING Information Technology & Electronic Eng
 | 34 | **双栏表格与页面对齐** | 双栏表格 `\begin{table}[!b]` 内 `\begin{tabular}` 宽度须等于 `\columnwidth`（≈8.6cm）；超宽→溢出→对齐失败 | 7.2 |
 | 35 | **同姓作者引用加名区分** | 当 bibitem 中存在多条目第一作者姓相同而名前缀不同（如 Chen KL vs Chen SZ），正文 `\citep{}` 引用时须加名区分 | 5.3 |
 | 36 | **数学常数正体** | grep `\pi` `\mathrm{e}` → `\mathrm{\pi}` `\mathrm{e}`（e/π/d/j 正体） | 4.1 |
-| 37 | **参考文献页码范围用 `-`** | grep `p.\d+--\d+` → 文献中一律用单连字符 `p.1-4`，不用 `p.1--4` | 5.5 |
+| 37 | **参考文献页码范围用 `--`** | grep `p.\d+-\d+` → 文献中页码范围须用 `--`（`p.1--4`），不用 `p.1-4` | 5.5 |
 | 38 | **符号解释顶格** | grep `where` `Here` → 公式后的 where 段须顶格（行首无缩进/`\qquad`） | 4.3 |
 | 39 | **全称缩写仅首词大写** | grep `[A-Z][a-z]+ [A-Z][a-z]+ \([A-Z]{2,}\)` → 全称仅首词首字母大写（`generalized memory polynomial (GMP)`），专有名词除外（`New Radio (NR)`） | 6.4 |
 
