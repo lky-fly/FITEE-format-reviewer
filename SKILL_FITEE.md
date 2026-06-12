@@ -303,6 +303,12 @@ description: "FITEE 期刊（ENGINEERING Information Technology & Electronic Eng
 - 审查时须 grep `\begin{enumerate}`、`\begin{itemize}` 检查非图表区域是否有列表使用
 - ⚠️ **禁止正文中 `\mbox{}` 防止换行**：`\mbox{unbalanced}` 这类会破坏段落自动换行，应直接写 `unbalanced`
 
+### 6.4 全称缩写大小写
+- 首次出现的全称 + 缩写形式，全称仅**首词首字母大写**，其余单词小写（专有名词除外）
+- 正确：`generalized memory polynomial (GMP)` / `adjacent channel leakage ratio (ACLR)`
+- 错误：`Generalized Memory Polynomial (GMP)` / `Adjacent Channel Leakage Ratio (ACLR)`
+- 例外：`5G New Radio (NR)` 中 `New Radio` 为专有名词，可保留大写
+
 ---
 
 ## 七、布局与间距
@@ -373,6 +379,7 @@ description: "FITEE 期刊（ENGINEERING Information Technology & Electronic Eng
 | 36 | **数学常数正体** | grep `\pi` `\mathrm{e}` → `\mathrm{\pi}` `\mathrm{e}`（e/π/d/j 正体） | 4.1 |
 | 37 | **参考文献页码范围用 `-`** | grep `p.\d+--\d+` → 文献中一律用单连字符 `p.1-4`，不用 `p.1--4` | 5.5 |
 | 38 | **符号解释顶格** | grep `where` `Here` → 公式后的 where 段须顶格（行首无缩进/`\qquad`） | 4.3 |
+| 39 | **全称缩写仅首词大写** | grep `[A-Z][a-z]+ [A-Z][a-z]+ \([A-Z]{2,}\)` → 全称仅首词首字母大写（`generalized memory polynomial (GMP)`），专有名词除外（`New Radio (NR)`） | 6.4 |
 
 > **执行方式**：审查时按此表逐行执行 grep，输出命中行，再人工判断是否违规。不得跳过任何行。
 
