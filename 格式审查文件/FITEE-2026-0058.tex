@@ -337,12 +337,10 @@ Finite impulse response (FIR) filters exhibit symmetry around the zero-frequency
 %where $f_s$ denotes the sampling rate. 
 
 Specifically, the inclusion of a complex exponential term $\mathrm{e}^{\mathrm{j}2\mathrm{\pi} f_{\triangle} n/f_s}$ in the complementary filter design shifts the frequency response of the prototype FIR filter. This operation enables an asymmetric spectral allocation and provides flexibility for matching the residual distortion bandwidth after analog filtering. For clarity, the complementary filtering function is uniformly denoted as $h_{\mathrm{CF}}[n]$. Starting from a prototype FIR low-pass filter $h[n]$, the complementary filtering function can be obtained as
-
 	\begin{equation}
 		\label{eq_asym}
 		h_{\mathrm{CF}}[n]=h[n]\cdot \mathrm{e}^{\mathrm{j}2\mathrm{\pi} f_{\triangle} n/f_s},
 	\end{equation}
-
 where $f_s$ denotes the sampling rate and $f_{\triangle}$ denotes the frequency shift applied to the prototype FIR filter. In this work, a 100-tap prototype FIR filter was used. The frequency shift can be selected according to the center of the residual distortion band after the FPA-FB.
 
 

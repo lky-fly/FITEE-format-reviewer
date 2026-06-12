@@ -204,6 +204,7 @@ description: "FITEE 期刊（ENGINEERING Information Technology & Electronic Eng
 - 引用不等式：`Inequality (1)`
 - **数字必须加括号**
 - 公式后的 `where` / `Here` 解释段**须顶格**（行首无缩进、无 `\qquad`）
+- ⚠️ **公式前后禁止空行**：`\begin{equation}` 前一行不能是空行、`\end{equation}` 后一行不能是空行；空行产生 `\parskip` 导致间距过大
 
 ### 4.5 无法判断时的处理
 - 上述规则均不适用、无法确定正斜体的 → **不改动，跳过**
@@ -380,6 +381,7 @@ description: "FITEE 期刊（ENGINEERING Information Technology & Electronic Eng
 | 37 | **参考文献页码用连字符 `-`** | grep 文献区 `\d+--\d+` → 文献中页码范围一律用 `-`（`p.1-4`、`19(3):309-321`），不用 `--` | 5.5 |
 | 38 | **符号解释顶格** | grep `where` `Here` → 公式后的 where 段须顶格（行首无缩进/`\qquad`） | 4.3 |
 | 39 | **全称缩写仅首词大写** | grep `[A-Z][a-z]+ [A-Z][a-z]+ \([A-Z]{2,}\)` → 全称仅首词首字母大写（`generalized memory polynomial (GMP)`），专有名词除外（`New Radio (NR)`） | 6.4 |
+| 40 | **公式前后禁止空行** | 检查 `\begin{equation}` 前一行和 `\end{equation}` 后一行 → 不得为空行 | 4.3 |
 
 > **执行方式**：审查时按此表逐行执行 grep，输出命中行，再人工判断是否违规。不得跳过任何行。
 
