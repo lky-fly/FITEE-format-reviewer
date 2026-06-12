@@ -4,7 +4,7 @@
 \usepackage{siunitx}
 % \usepackage[dvips, hidelinks, breaklinks = true]{hyperref}  % for DVI to PDF latex
 \usepackage[ hidelinks, breaklinks = true]{hyperref}  % for DVI to PDF latex
-\DeclareRobustCommand{\FPAFB}{\mbox{FPA-FB}}
+\DeclareRobustCommand{\FPAFB}{FPA-FB}
 
 \addto{\captionsenglish}{%
   \renewcommand{\figurename}{Fig.}
@@ -100,7 +100,7 @@ As a representative of analog techniques, filters are commonly used to suppress 
 	\centering
 	\subfloat[]{ \includegraphics[width=1.0\columnwidth]{fig2a}}\\
 	\subfloat[]{ \includegraphics[width=1.0\columnwidth]{fig2b}}
-	\caption{(a) Traditional linearization architecture; (b) proposed linearization architecture with complementary filtering}
+	\caption{(a) traditional linearization architecture; (b) proposed linearization architecture with complementary filtering}
 \end{figure}
 As a representative digital technique for addressing nonlinearity, DPD has been widely adopted due to its precise control and effective mitigation of distortion \citep{DPD5,DPD1,DPD3,DPD2,DPD4}. On the one hand, DPD provides an effective method for correcting PA nonlinearity without compromising system efficiency. On the other hand, DPD can mitigate intermodulation distortion within the main channel, a task that analog filters are incapable of performing. Despite its advantages, DPD becomes increasingly demanding in terms of sampling rate as the signal bandwidth expands. To overcome this limitation, band-limited DPD (BL-DPD) was proposed in \citep{YC}, which alleviates the high sampling rate requirements while maintaining the accuracy of nonlinear distortion correction. It suggests a direction for high-linearity broadband signal transmission, but  remains a preliminary solution because it is based on symmetrical filtering function while filters in practical applications may not exhibit symmetrical frequency distributions as in \citep{YC}.
 
@@ -149,7 +149,7 @@ Assuming that the \FPAFB\ suppresses most of the PA’s distortions, the remaini
 \begin{figure}[!b]
 	\centering
 	\includegraphics[width=1.0\columnwidth]{fig4}
-	\caption{Overview of the proposed \FPAFB. }
+	\caption{Overview of the proposed \FPAFB}
 \end{figure}
 
 
@@ -211,7 +211,7 @@ As depicted in Fig.~5, the semicircular patch is grounded by a metallic via, int
 
 
 
-In typical filter designs, the impedance at both ends is set to 50 $\Omega$ to ensure compatibility with other devices. However, the filter described herein does not perform impedance transformation so the load impedance at both ends is set to the conjugate of the optimal impedance. Based on the simulated load-pull results, $Z_{opt}$ is selected as (9.8-j·2) $\Omega$ taking into account both PAE and output power. Fig.~6 demonstrates the response variations of the patch resonator when the impedance at both ends is set to 50 $\Omega$ and $Z_{opt}^{*}$. It is evident that the first three resonant modes shift to higher frequencies and exhibit a higher Q-factor. These changes do not introduce new challenges for the multimode BPF design. As mentioned earlier, one advantage of a multimode BPF is its ability to flexibly control each resonant frequency through perturbations, making frequency variations less of a concern. As for higher Q-factor, the external Q-value of the resonator can be adjusted by modifying the position and size of the feeder. While a high Q-factor results in increased insertion losses, it also improves the filter's selectivity, making it more effective in suppressing undesired frequencies.
+In typical filter designs, the impedance at both ends is set to 50 $\Omega$ to ensure compatibility with other devices. However, the filter described herein does not perform impedance transformation so the load impedance at both ends is set to the conjugate of the optimal impedance. Based on the simulated load-pull results, $Z_{\mathrm{opt}}$ is selected as (9.8-$\mathrm{j}\cdot 2$) $\Omega$ taking into account both PAE and output power. Fig.~6 demonstrates the response variations of the patch resonator when the impedance at both ends is set to 50 $\Omega$ and $Z_{\mathrm{opt}}^{*}$. It is evident that the first three resonant modes shift to higher frequencies and exhibit a higher Q-factor. These changes do not introduce new challenges for the multimode BPF design. As mentioned earlier, one advantage of a multimode BPF is its ability to flexibly control each resonant frequency through perturbations, making frequency variations less of a concern. As for higher Q-factor, the external Q-value of the resonator can be adjusted by modifying the position and size of the feeder. While a high Q-factor results in increased insertion losses, it also improves the filter's selectivity, making it more effective in suppressing undesired frequencies.
 
 
 \begin{figure}[!htb]
@@ -231,7 +231,7 @@ In typical filter designs, the impedance at both ends is set to 50 $\Omega$ to e
 	\subfloat[]{\includegraphics[width = 0.48\columnwidth]{fig8a}}
 	\hfill
 	\subfloat[]{\includegraphics[width = 0.48\columnwidth]{fig8b}}
-	\caption{Simulated frequency variations under change of (a) $L_P$ and (b) $\theta$. }
+	\caption{Simulated frequency variations under change of (a) $L_P$; (b) $\theta$}
 \end{figure}
 To generate a passband, symmetric slots are introduced to the semicircular patch as shown in Fig.~7. Based on the current distribution, radially oriented slots have no impact on the current path of mode 1, so the frequency of mode 1 ($f_1$) remains unchanged. For modes 2 and 3, however, the presence of radial slots extends the current paths, resulting in a decrease in their resonate frequencies. Detailed simulation results under different $L_P$ (length of the slots) and $\theta$ (angle between the slots) are given in Fig.~8. 
 An increase in $L_P$ results in longer current paths for modes 2 and 3, which in turn decreases $f_2$ and $f_3$. In addition, when $\theta$ is zero, the direction of the slots is perpendicular to the current path of mode 2 and parallel to that of mode 3, so the slots have maximum influence on the current path of mode 2 and the minimum influence on the current path of mode 3. 
@@ -251,16 +251,16 @@ In this paper, the filter bandwidth is designed to slightly exceed 400 MHz, faci
 \begin{figure}[!htb] 
 	\centering
 	\includegraphics[width=0.7\columnwidth]{fig10}
-	\caption{Output matching circuit with feedback port based on asymmetrical coupler. }
+	\caption{Output matching circuit with feedback port based on asymmetrical coupler}
 \end{figure}
-With almost all harmonic components blocked from entering the output matching network as in Fig.9, the OMN design can focus on transforming impedance at the fundamental frequency, thereby facilitating the simultaneous feedback function.
+With almost all harmonic components blocked from entering the output matching network as in Fig.~9, the OMN design can focus on transforming impedance at the fundamental frequency, thereby facilitating the simultaneous feedback function.
 
-When the goal is to achieve impedance transformation alongside power coupling, the use of an asymmetric coupler, as shown in Fig.~10, becomes an intuitive option \citep{COU2,COU1}. For DPD, a coupling factor of 30 dB is sufficient in this case, as only minimal power is needed to correct distortion. Since nearly all of the PA output power is delivered to the load through the main line, the effects of the coupled line are negligible. As a result, the characteristic impedance and length of the main line \( l_1 \) can be directly determined using \( Z_{opt} \) and \( Z_0 \) as follows.
+When the goal is to achieve impedance transformation alongside power coupling, the use of an asymmetric coupler, as shown in Fig.~10, becomes an intuitive option \citep{COU2,COU1}. For DPD, a coupling factor of 30 dB is sufficient in this case, as only minimal power is needed to correct distortion. Since nearly all of the PA output power is delivered to the load through the main line, the effects of the coupled line are negligible. As a result, the characteristic impedance and length of the main line \( l_1 \) can be directly determined using \( Z_{\mathrm{opt}} \) and \( Z_0 \) as follows.
 \begin{equation}
-	Z_1=\sqrt{Z_0R_{opt}-\frac{Z_0X_{opt}^2}{Z_0-R_{opt}}},
+	Z_1=\sqrt{Z_0R_{\mathrm{opt}}-\frac{Z_0X_{\mathrm{opt}}^2}{Z_0-R_{\mathrm{opt}}}},
 \end{equation}
 \begin{equation}
-	l_1 = \frac{\lambda}{2\pi}\arctan{\left(\frac{Z_0-R_{opt}}{Z_0X_{opt}}\sqrt{Z_0R_{opt}-\frac{Z_0X_{opt}^2}{Z_0-R_{opt}}}\right)}.
+	l_1 = \frac{\lambda}{2\mathrm{\pi}}\arctan{\left(\frac{Z_0-R_{\mathrm{opt}}}{Z_0X_{\mathrm{opt}}}\sqrt{Z_0R_{\mathrm{opt}}-\frac{Z_0X_{\mathrm{opt}}^2}{Z_0-R_{\mathrm{opt}}}}\right)}.
 \end{equation}
 For the coupled microstrip line, port 4 is grounded with a 50$\Omega$ resistor, and port 3 is designated as the feedback port. The coupling factor can be easily determined through electromagnetic simulation by analyzing the distance between the main line and the coupled line.
 In this paper, the simulated coupling level is approximately 35 dB across 3.3–3.7 GHz, with a variation of less than 0.25 dB. The simulated group delay variation of the feedback path is less than 0.01 ns across the same frequency range. Since only a small fraction of the output power is extracted for feedback observation, the integrated feedback extraction has limited influence on the main-line matching and transmission response.
@@ -269,7 +269,7 @@ In this paper, the simulated coupling level is approximately 35 dB across 3.3–
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[width=0.95\columnwidth]{fig11}
-	\caption{Final configuration and dimensions of the proposed multifunctional FPA-FB for analog filtering. }
+	\caption{Final configuration and dimensions of the proposed multifunctional FPA-FB for analog filtering}
 \end{figure}
 Fig.~11 presents the final configuration of the proposed \FPAFB. The design employs a TLY-5 substrate with a dielectric constant of 2.2 and a thickness of 0.508 mm. The specified dimensions of the patch filter are: $\theta$ = 7.5°, $Lr$ = 2.9 mm, $Ls$ = 2.9 mm, $Lx$ = 22 mm, $Rp$ = 11 mm, $Wr$ = 0.2 mm, $Ws$ = 0.2 mm and $Wz$ = 0.64 mm. The bypass capacitors for the source and gate are selected as 10 \unit{pF}, 39 \unit{pF}, 100 \unit{pF}, and 1 \unit{\micro\farad}, respectively. Besides, serpentine slots are employed in the multimode filter to further increase the current path. The \FPAFB\ has an overall size of 67 mm $\times$ 32 mm, equivalent to 1.1 $\lambda_g \times$ 0.5 $\lambda_g$. Within such reduced size, the \FPAFB\ effectively integrates amplification, filtering, and feedback functions, demonstrating its capability for miniaturization.
 
@@ -301,7 +301,7 @@ Inspired by the classic band-limited Volterra series model, an asymmetric filter
 	\centering
 	\subfloat[]{\includegraphics[width = 1.0\textwidth]{fig12a}}\\
 	\subfloat[]{\includegraphics[width = 1.0\textwidth]{fig12b}}
-	\caption{(a) Diagram of the proposed CF-DPD system;  (b) asymmetrical filtering function with complementary spectrum allocation in modified band-limited Volterra series model}
+	\caption{(a) diagram of the proposed CF-DPD system;  (b) asymmetrical filtering function with complementary spectrum allocation in modified band-limited Volterra series model}
 \end{figure*}
 
 
@@ -319,7 +319,7 @@ As mentioned earlier, the \FPAFB\ can capture the PA output in real time. Likewi
 	\begin{aligned}
 		y(n) = & \sum_{k=0}^{K_a-1} \sum_{l=0}^{L_a-1} a_{kl} x(n-l) \left| x(n-l) \right|^k  \\
 		& + \sum_{k=1}^{K_b} \sum_{l=0}^{L_b-1} \sum_{m=1}^{M_b} b_{klm} x(n-l) \left| x(n-l-m) \right|^k  \\
-		& + \sum_{k=1}^{K_c} \sum_{l=0}^{L_c-1} \sum_{m=1}^{M_c} c_{klm} x(n-l) \left| x(n-l+m) \right|^k \\
+		& + \sum_{k=1}^{K_c} \sum_{l=0}^{L_c-1} \sum_{m=1}^{M_c} c_{klm} x(n-l) \left| x(n-l+m) \right|^k, \\
 	\end{aligned}
 \end{equation}
 where $x(n)$ and $y(n)$ represent the input and the output signals. $K_a$, $K_b$, $K_c$ represent nonlinearity orders, $L_a$, $L_b$, $L_c$ represent memory depths and $M_b$, $M_c$ are the longest lagging and leading delay tap length, respectively. $a_{kl}$, $b_{klm}$, $c_{klm}$ are the coefficients of the general memory
@@ -329,29 +329,29 @@ polynomial applied on the aligned terms, the lagging and leading cross-term.
 
 Finite impulse response (FIR) filters exhibit symmetry around the zero-frequency point. This is due to the filter's real-valued coefficients. In other words, for a real-valued sequence $h(n)$, the Fourier transform exhibits conjugate symmetry between positive and negative frequencies, i.e., $ H(f)=H^*(-f) $. Therefore, introducing complex coefficients can disrupt this symmetry, allowing for the design of a complementary filtering function that effectively compensates for the residual distortion.
 
-%Specifically, the inclusion of a complex exponential term $e^{j\cdot 2\pi f_{\triangle} t}$ in the complementary filter design process shifts the frequency response. This adjustment allows for the introduction of asymmetry in the filter's spectrum allocation, facilitating more flexible design options for the desired filtering characteristics. When starting with a traditional FIR low-pass filter $h(n)$ as the base design, the following transformation can be employed to get the complementary filter with asymmetrical spectrum allocation:
+%Specifically, the inclusion of a complex exponential term $e^{j\cdot 2\mathrm{\pi} f_{\triangle} t}$ in the complementary filter design process shifts the frequency response. This adjustment allows for the introduction of asymmetry in the filter's spectrum allocation, facilitating more flexible design options for the desired filtering characteristics. When starting with a traditional FIR low-pass filter $h(n)$ as the base design, the following transformation can be employed to get the complementary filter with asymmetrical spectrum allocation:
 %\begin{equation}
 %	\label{eq_asym}
-%	h_\text{com} (n)=h(n) \cdot e^{j\cdot 2\pi \frac{f_{\triangle}}{f_s} t}
+%	h_\text{com} (n)=h(n) \cdot e^{j\cdot 2\mathrm{\pi} \frac{f_{\triangle}}{f_s} t}
 %\end{equation}
 %where $f_s$ denotes the sampling rate. 
 
-Specifically, the inclusion of a complex exponential term $e^{j2\pi f_{\triangle} n/f_s}$ in the complementary filter design shifts the frequency response of the prototype FIR filter. This operation enables an asymmetric spectral allocation and provides flexibility for matching the residual distortion bandwidth after analog filtering. For clarity, the complementary filtering function is uniformly denoted as $h_{\mathrm{CF}}[n]$. Starting from a prototype FIR low-pass filter $h[n]$, the complementary filtering function can be obtained as
+Specifically, the inclusion of a complex exponential term $\mathrm{e}^{\mathrm{j}2\mathrm{\pi} f_{\triangle} n/f_s}$ in the complementary filter design shifts the frequency response of the prototype FIR filter. This operation enables an asymmetric spectral allocation and provides flexibility for matching the residual distortion bandwidth after analog filtering. For clarity, the complementary filtering function is uniformly denoted as $h_{\mathrm{CF}}[n]$. Starting from a prototype FIR low-pass filter $h[n]$, the complementary filtering function can be obtained as
 
 	\begin{equation}
 		\label{eq_asym}
-		h_{\mathrm{CF}}[n]=h[n]\cdot e^{j2\pi f_{\triangle} n/f_s},
+		h_{\mathrm{CF}}[n]=h[n]\cdot \mathrm{e}^{\mathrm{j}2\mathrm{\pi} f_{\triangle} n/f_s},
 	\end{equation}
 
 where $f_s$ denotes the sampling rate and $f_{\triangle}$ denotes the frequency shift applied to the prototype FIR filter. In this work, a 100-tap prototype FIR filter was used. The frequency shift can be selected according to the center of the residual distortion band after the FPA-FB.
 
 
-By introducing the complementary filtering function $h_{\mathrm{CF}} [n]$ to limit the bandwidth of each item of the GMP model, the output of the proposed CF-DPD based on GMP model $y_\text{CF}(n)$  can be derived as follows.
+By introducing the complementary filtering function $h_{\mathrm{CF}} [n]$ to limit the bandwidth of each item of the GMP model, the output of the proposed CF-DPD based on GMP model $y_{\mathrm{CF}}(n)$  can be derived as follows.
 \begin{equation}
 	\begin{aligned}
-		y_{\text{CF}}(n) = &\!\sum_{k=0}^{K_a-1} \sum_{l=0}^{L_a-1} a_{kl} \!\cdot\! h_{\mathrm{CF}} [n] \!*\! \big[x(n\!-\!l) \!\cdot\! |x(n\!-\!l)|^k \big] \\
+		y_{\mathrm{CF}}(n) = &\!\sum_{k=0}^{K_a-1} \sum_{l=0}^{L_a-1} a_{kl} \!\cdot\! h_{\mathrm{CF}} [n] \!*\! \big[x(n\!-\!l) \!\cdot\! |x(n\!-\!l)|^k \big] \\
 		+   \!\sum_{k=1}^{K_b} & \sum_{l=0}^{L_b-1} \sum_{m=1}^{M_b}  b_{klm} \!\cdot\! h_{\mathrm{CF}}[n] \!*\! \big[x(n\!-\!l) \!\cdot\! |x(n\!-\!l\!-\!m)|^k \big] \\
-		+  \!\sum_{k=1}^{K_c}  &  \sum_{l=0}^{L_c-1} \sum_{m=1}^{M_c} c_{klm} \!\cdot\! h_{\mathrm{CF}}[n] \!*\! \big[x(n\!-\!l) \!\cdot\! |x(n\!-\!l\!+\!m)|^k \big] \\
+		+  \!\sum_{k=1}^{K_c}  &  \sum_{l=0}^{L_c-1} \sum_{m=1}^{M_c} c_{klm} \!\cdot\! h_{\mathrm{CF}}[n] \!*\! \big[x(n\!-\!l) \!\cdot\! |x(n\!-\!l\!+\!m)|^k \big]. \\
 	\end{aligned}
 \end{equation}
 
@@ -375,7 +375,7 @@ Based on the analysis above, employing an asymmetrical baseband filter with a pa
 	\centering
 	\subfloat[]{\includegraphics[width = 1.0\columnwidth]{fig13a}}\\
 	\subfloat[]{\includegraphics[width = 1.0\columnwidth]{fig13b}}
-	\caption{(a) Fabricated \FPAFB\: S-parameter characteristics (b) Transmission coefficient over the entire frequency range and harmonic rejection characteristics. }
+	\caption{(a) fabricated \FPAFB\: S-parameter characteristics; (b) transmission coefficient over the entire frequency range and harmonic rejection characteristics}
 \end{figure}
 
 The proposed \FPAFB\ was fabricated and measured to verify the design concept. Fig.~13a shows the photograph of the fabricated \FPAFB\ along with its frequency response under 28~V drain voltage and $-$2.8~V gate voltage. The results indicate good agreement between simulation and measurement. The \FPAFB\ delivers a small-signal gain of approximately 14.5 dB in the passband, which is commendable considering our design simultaneously integrates amplification, filtering and feedback functionalities. This further demonstrates its effectiveness in reducing interconnect losses. The transmission coefficient across the entire frequency band is further presented in Fig.~13b. The measured transmission coefficient \( S_{21} \) achieved suppression levels exceeding 43 dBc for the 2nd--5th harmonic components. These results demonstrate that the proposed \FPAFB\ not only performs well within the target bandwidth but also effectively mitigates higher-order harmonic interference, thereby enhancing the overall linearity of the system.
@@ -385,20 +385,20 @@ The proposed \FPAFB\ was fabricated and measured to verify the design concept. F
 	\centering
 	\subfloat[]{\includegraphics[width = 0.8\columnwidth]{fig14a}}\\
 	\subfloat[]{\includegraphics[width = 0.8\columnwidth]{fig14b}}
-	\caption{(a) Simulated and measured results of PAE, gain, and output power at saturation point; (b) PA performance versus output power at the center and edges of the passband}
+	\caption{(a) simulated and measured results of PAE, gain, and output power at saturation point; (b) PA performance versus output power at the center and edges of the passband}
 \end{figure}
 
 
 The frequency characteristics of the \FPAFB\ under large signal excitation are given in Fig.~14a where the input signal is 28.5 dBm. The measured output power ranges from 38.7--40.5 dBm, the gain is between 8.4--11.9 dB, and the saturated PAE is in the range of 42.6--52.1\% across the frequency range of 3.3--3.7 GHz. The responses of the \FPAFB\ under different output power levels are shown in Fig.~14b, which further support the PA’s ability to achieve good performance at both the center and edges of the passband.
 
 
-Table I provides a comparison with other reported FPAs. The proposed design offers a balanced performance in terms of efficiency, harmonic suppression and size reduction, while uniquely incorporating a feedback port, which has seldom been realized together in earlier reports. Such an integration not only benefits compact hardware and enhanced linearization capability, but also provides direct support for DPD implementation.
+Table~I provides a comparison with other reported FPAs. The proposed design offers a balanced performance in terms of efficiency, harmonic suppression and size reduction, while uniquely incorporating a feedback port, which has seldom been realized together in earlier reports. Such an integration not only benefits compact hardware and enhanced linearization capability, but also provides direct support for DPD implementation.
 
 \begin{table*}[t]\footnotesize
 	\centering
 	\caption{Comparison with other FPA works}
 	\addtolength{\tabcolsep}{5pt}
-	\begin{tabular*}{16.2cm}{ccccccc}
+	\begin{tabular*}{18cm}{ccccccc}
 		\toprule
 		Works & Tech & BW (GHz) & PAE (\%) & Harmonic rejection & Size ($\lambda_g\times\lambda_g$) & FBP \\
 		\midrule
@@ -409,7 +409,7 @@ Table I provides a comparison with other reported FPAs. The proposed design offe
 		\citep{FPA6} & LDMOS & 2.57--2.67 & 41--46 & 20 dBc up to 2nd  & 1.5$\times$1.1  & No \\
 		\textbf{This work} & \textbf{GaN} & \textbf{3.3--3.7} & \textbf{43--52} & \textbf{43 dBc up to 5th} & \textbf{1.1$\times$0.5} & \textbf{Yes} \\
 		\bottomrule
-		\multicolumn{7}{p{7.6cm}}{\scriptsize Abbreviations: FBP, feedback port; NM, not mentioned}
+		\multicolumn{7}{p{7.6cm}}{\footnotesize Abbreviations: FBP, feedback port; NM, not mentioned}
 	\end{tabular*}
 \end{table*}
 
@@ -423,12 +423,12 @@ The above test results are based on continuous wave measurements, demonstrating 
 As discussed in Section IV, the implementation of complementary filtering helps to reduce the system's sampling rate. Therefore, the PA was linearized using three approaches for comparison: traditional DPD, BL-DPD, and the proposed CF-DPD with asymmetric filtering function. For all three DPD tests, the signal analyzer was configured with sufficient acquisition bandwidth to ensure consistent waveform acquisition. The DPD coefficients were extracted offline using an iterative indirect learning architecture with seven adaptation iterations. For each DPD case, 40000 samples were used for coefficient extraction, and approximately 10000 additional samples were used for validation. All three tests are based on the GMP model, with the same model parameters for each. The nonlinearity order and memory depth for the aligned signal are $K_a$ = 6, $L_a$ = 10. For the lagging and leading signal terms, the nonlinearity orders are $K_b$ = $K_c$ = 5, memory depths are $L_b$ = $L_c$ = 4 and the longest lagging and leading delay tap length are  $M_b$ = $M_c$ =4.
 
 
-The performance comparison of the three DPD models is presented in Table II. It can be observed that the ACLR reaches $-34.7/-39.0$ dBc even without applying DPD, highlighting the contribution of the integrated analog filter in enhancing linearity. The proposed CF-DPD achieves optimal NMSE and ACLR while maintaining the minimal oversampling ratio (OSR). Since the same GMP model parameters are used for all three DPD methods, the computational cost per sample is kept comparable for a fair comparison. Therefore, the reduction in OSR corresponds to a reduction in the sampling-rate-related digital processing burden. For the 400-MHz signal, the proposed CF-DPD reduces the equivalent sampling rate from 2.0 GSPS for traditional DPD and 1.0 GSPS for BL-DPD to 850 MSPS, corresponding to a 57.5\% reduction in processing rate compared with traditional DPD and a 15\% reduction compared with BL-DPD.
+The performance comparison of the three DPD models is presented in Table~II. It can be observed that the ACLR reaches $-34.7/-39.0$ dBc even without applying DPD, highlighting the contribution of the integrated analog filter in enhancing linearity. The proposed CF-DPD achieves optimal NMSE and ACLR while maintaining the minimal oversampling ratio (OSR). Since the same GMP model parameters are used for all three DPD methods, the computational cost per sample is kept comparable for a fair comparison. Therefore, the reduction in OSR corresponds to a reduction in the sampling-rate-related digital processing burden. For the 400-MHz signal, the proposed CF-DPD reduces the equivalent sampling rate from 2.0 GSPS for traditional DPD and 1.0 GSPS for BL-DPD to 850 MSPS, corresponding to a 57.5\% reduction in processing rate compared with traditional DPD and a 15\% reduction compared with BL-DPD.
 
 \begin{figure}[!b]
 	\centering
 	\includegraphics[width=1.0\columnwidth]{fig15}
-	\caption{Overview of the experimental DPD test bench setup. }
+	\caption{Overview of the experimental DPD test bench setup}
 \end{figure}
 
 %\begin{table}[!b]\footnotesize
@@ -454,15 +454,15 @@ The performance comparison of the three DPD models is presented in Table II. It 
 	\centering
 	\begin{tabular}{m{1.3cm}<{\centering}  m{1.4cm}<{\centering} m{1.4cm}<{\centering}   m{1.4cm}<{\centering}   m{0.8cm}<{\centering}   }    
 		\toprule
-		\textbf{Method}            & \textbf{Coefficients} & \textbf{NMSE(dB)}    & \textbf{ACLR(dBc)} & \textbf{OSR}  \\
+		Method            & Coefficients & NMSE(dB)    & ACLR(dBc) & OSR  \\
 		\midrule
-		\textbf{Without DPD}        & NA & $-15.2$       & $-34.7/-39.0$        & NA \\
+		Without DPD        & NA & $-15.2$       & $-34.7/-39.0$        & NA \\
 		\midrule
-		\textbf{Traditional DPD}    & 220 & $-30.5$       & $-40.6/-45.0$        & 5    \\
+		Traditional DPD    & 220 & $-30.5$       & $-40.6/-45.0$        & 5    \\
 		\midrule
-		\textbf{BL-DPD}             & 220 & $-32.1$       & $-44.9/-46.7$        & 2.5  \\    
+		BL-DPD             & 220 & $-32.1$       & $-44.9/-46.7$        & 2.5  \\    
 		\midrule
-		\textbf{Proposed CF-DPD}   & 220 & $-32.2$       & $-45.1/-47.2$        & 2.125 \\    
+		Proposed CF-DPD   & 220 & $-32.2$       & $-45.1/-47.2$        & 2.125 \\    
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -484,7 +484,7 @@ The red curve further indicates that using the traditional DPD to model the PA w
 \end{figure}
 
 
-\section{Conclusion} \label{}
+\section{Conclusions} \label{}
 This paper proposed a linearization architecture aimed at enhancing broadband linearity based on complementary filtering concept. A \FPAFB\ is co-designed with a CF-DPD to realize the architecture. The integration of a multimode bandpass filter and a feedback-enabled output matching network facilitates efficient harmonic suppression, size reduction, and multi-functionality, providing a compact and versatile solution. Experimental results validate that the \FPAFB\ effectively suppresses harmonic distortion, and the proposed CF-DPD model not only reduces intermodulation distortion but also minimizes sampling rate requirements of DPD system, making the proposed architecture efficient for high-linearity broadband signal processing.
 
 
@@ -506,7 +506,7 @@ This paper proposed a linearization architecture aimed at enhancing broadband li
 
 ~
 
-\noindent{\textbf{Author contributions}}
+\noindent{\textbf{Contributors}}
 
 {\small Huihui FEI designed the research and drafted the manuscript. Yucheng YU assisted with the experimental validation and measurements. Peng CHEN and Chao YU revised and finalized the paper.}
 
@@ -524,7 +524,7 @@ This paper proposed a linearization architecture aimed at enhancing broadband li
 
 ~
 
-{\noindent{\textbf{Declaration on the use of generative AI tools}}
+{\noindent{\textbf{Declaration on the use of generative AI tool}}
 
 {\small During the preparation of this work, the authors used ChatGPT to improve language. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.}}
 
@@ -545,29 +545,31 @@ This paper proposed a linearization architecture aimed at enhancing broadband li
 {3GPP}, 2024b.
 \newblock NR; User Equipment (UE) Radio Transmission and Reception; Part 1: Range 1 Standalone, 3GPP TS 38.101-1 version 17.12.0 Release 17.
 
-\bibitem[\protect\astroncite{Chen {et~al.}}{2011}]{FPA3}
+\bibitem[\protect\astroncite{Chen SZ and Kang}{2018}]{5g}
+Chen SZ, Kang SL, 2018.
+\newblock A tutorial on 5G and the progress in China.
+\newblock {\em Front Inform Technol Electron Eng}, 19(3):309--321. \\
+  https://doi.org/10.1631/FITEE.1800070
+
+
+
+\bibitem[\protect\astroncite{Chen KL {et~al.}}{2011}]{FPA3}
 Chen KL, Liu XG, Chappell WJ, {et~al.}, 2011.
 \newblock Co-design of power amplifier and narrowband filter using high-$Q$ evanescent-mode cavity resonator as the output matching network.
-\newblock IEEE MTT-S Int Microwave Symp, p.1--4. \\
+\newblock IEEE MTT-S Int Microwave Symp, p.1-4. \\
   https://doi.org/10.1109/MWSYM.2011.5972854
 
-\bibitem[\protect\astroncite{Chen {et~al.}}{2013a}]{FPA1}
+\bibitem[\protect\astroncite{Chen KL {et~al.}}{2013a}]{FPA1}
 Chen KL, Lee J, Chappell WJ, {et~al.}, 2013a.
 \newblock Co-design of highly efficient power amplifier and high-$Q$ output bandpass filter.
 \newblock {\em IEEE Trans Microwave Theory Techn}, 61(11):3940--3950. \\
   https://doi.org/10.1109/TMTT.2013.2284485
 
-\bibitem[\protect\astroncite{Chen {et~al.}}{2013b}]{FPA2}
+\bibitem[\protect\astroncite{Chen KL {et~al.}}{2013b}]{FPA2}
 Chen KL, Lee TC, Peroulis D, 2013b.
 \newblock Co-design of multi-band high-efficiency power amplifier and three-pole high-$Q$ tunable filter.
 \newblock {\em IEEE Microw Wireless Compon Lett}, 23(12):647--649. \\
   https://doi.org/10.1109/LMWC.2013.2283876
-
-\bibitem[\protect\astroncite{Chen and Kang}{2018}]{5g}
-Chen SZ, Kang SL, 2018.
-\newblock A tutorial on 5G and the progress in China.
-\newblock {\em Front Inform Technol Electron Eng}, 19(3):309--321. \\
-  https://doi.org/10.1631/FITEE.1800070
 
 \bibitem[\protect\astroncite{Estrada {et~al.}}{2021}]{FPA4}
 Estrada JA, Montejo-Garai JR, de Paco P, {et~al.}, 2021.
@@ -596,7 +598,7 @@ Hong JS, Li S, 2004.
 \bibitem[\protect\astroncite{Joshi {et~al.}}{2007}]{EVA1}
 Joshi H, Sigmarsson HH, Peroulis D, {et~al.}, 2007.
 \newblock Highly loaded evanescent cavities for widely tunable high-$Q$ filters.
-\newblock IEEE/MTT-S Int Microwave Symp, p.2133--2136. \\
+\newblock IEEE/MTT-S Int Microwave Symp, p.2133-2136. \\
   https://doi.org/10.1109/MWSYM.2007.380346
 
 \bibitem[\protect\astroncite{Katz {et~al.}}{2016}]{DPD1}
@@ -656,7 +658,7 @@ Othmani M, Boulejfen N, Turunen M, {et~al.}, 2023.
 \bibitem[\protect\astroncite{Park {et~al.}}{2009}]{EVA2}
 Park SJ, Reines I, Rebeiz G, 2009.
 \newblock High-$Q$ RF-MEMS tunable evanescent-mode cavity filter.
-\newblock IEEE MTT-S Int Microwave Symp Digest, p.1145--1148. \\
+\newblock IEEE MTT-S Int Microwave Symp Digest, p.1145-1148. \\
   https://doi.org/10.1109/MWSYM.2009.5165904
 
 \bibitem[\protect\astroncite{Pedro and Maas}{2005}]{model2}
@@ -665,17 +667,19 @@ Pedro JC, Maas SA, 2005.
 \newblock {\em IEEE Trans Microw Theory Techn}, 53(4):1150--1163. \\
   https://doi.org/10.1109/TMTT.2005.845723
 
-\bibitem[\protect\astroncite{Ruppel {et~al.}}{2002}]{saw1}
-Ruppel CCW, Reindl L, Weigel R, 2002.
-\newblock SAW devices and their wireless communications applications.
-\newblock {\em IEEE Microw Mag}, 3(2):65--71. \\
-  https://doi.org/10.1109/MMW.2002.1004053
-
 \bibitem[\protect\astroncite{Ruppel}{2017}]{saw2}
 Ruppel CCW, 2017.
 \newblock Acoustic wave filter technology---a review.
 \newblock {\em IEEE Trans Ultrason Ferroelectr Freq Control}, 64(9):1390--1400. \\
   https://doi.org/10.1109/TUFFC.2017.2690905
+
+
+
+\bibitem[\protect\astroncite{Ruppel {et~al.}}{2002}]{saw1}
+Ruppel CCW, Reindl L, Weigel R, 2002.
+\newblock SAW devices and their wireless communications applications.
+\newblock {\em IEEE Microw Mag}, 3(2):65--71. \\
+  https://doi.org/10.1109/MMW.2002.1004053
 
 \bibitem[\protect\astroncite{Tehrani {et~al.}}{2010}]{model1}
 Tehrani AS, Cao HY, Afsardoost S, {et~al.}, 2010.
@@ -707,13 +711,13 @@ Yu C, Guan L, Zhu EN, {et~al.}, 2012.
 \newblock {\em IEEE Trans Microw Theory Techn}, 60(12):4198--4208. \\
   https://doi.org/10.1109/TMTT.2012.2222658
 
-\bibitem[\protect\astroncite{Zhu}{2015}]{DPD5}
+\bibitem[\protect\astroncite{Zhu AD}{2015}]{DPD5}
 Zhu AD, 2015.
 \newblock Decomposed vector rotation-based behavioral modeling for digital predistortion of RF power amplifiers.
 \newblock {\em IEEE Trans Microw Theory Techn}, 63(2):737--744. \\
   https://doi.org/10.1109/TMTT.2014.2387853
 
-\bibitem[\protect\astroncite{Zhu {et~al.}}{2009}]{FB1}
+\bibitem[\protect\astroncite{Zhu XE {et~al.}}{2009}]{FB1}
 Zhu XE, Lee V, Phillips J, {et~al.}, 2009.
 \newblock An intrinsically switchable FBAR filter based on barium titanate thin films.
 \newblock {\em IEEE Microw Wireless Compon Lett}, 19(6):359--361. \\
